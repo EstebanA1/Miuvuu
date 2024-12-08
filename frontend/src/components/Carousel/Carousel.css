@@ -1,0 +1,41 @@
+.carousel-container {
+    position: relative;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    overflow: hidden;
+    height: 300px; /* Altura fija para el carrusel */
+  }
+  
+  .carousel-item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+  }
+  
+  .carousel-item.active {
+    opacity: 1;
+    z-index: 1;
+  }
+  
+  .carousel-item.inactive {
+    opacity: 0;
+    z-index: 0;
+  }
+  
+  .carousel-caption {
+    position: absolute;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+  }
+  
