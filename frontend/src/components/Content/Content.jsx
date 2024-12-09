@@ -3,7 +3,7 @@ import { getProductos } from "../../services/productos";
 import Carousel from "../Carousel/Carousel";
 import "./Content.css";
 import AddProductForm from "../addProductos/AddProductForm";
-import { Button } from "@mui/material"; // Assuming you're using Material-UI
+import { Button } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
 
 const Content = ({ leftVisible, rightVisible, filter }) => {
@@ -16,23 +16,30 @@ const Content = ({ leftVisible, rightVisible, filter }) => {
         const query = [];
         if (filter.category) {
           query.push(`categoria=${encodeURIComponent(filter.category)}`);
-        } else if (filter.gender) {
-          query.push(`genero=${encodeURIComponent(filter.gender)}`);
+          console.log("Filtro por categoría:", filter.category);
         }
-
+        if (filter.gender) {
+          query.push(`genero=${encodeURIComponent(filter.gender)}`);
+          console.log("Filtro por género:", filter.gender);
+        }
+        if (filter.searchQuery) {
+          query.push(`searchQuery=${encodeURIComponent(filter.searchQuery)}`);
+          console.log("Filtro por búsqueda:", filter.searchQuery);
+        }
+        
         const queryString = query.length > 0 ? `?${query.join("&")}` : "";
-
         const data = await getProductos(queryString);
-        console.log("Productos recibidos:", data);
-
+  
         setProductos(data);
       } catch (error) {
         console.error("Hubo un error al obtener los productos", error);
       }
     };
-
+  
     fetchProductos();
   }, [filter]);
+  
+  
 
   const handleOpenAddProductForm = () => {
     setIsAddProductFormOpen(true);
@@ -56,8 +63,8 @@ const Content = ({ leftVisible, rightVisible, filter }) => {
           top: '100px',
           left: '10px',
           zIndex: 10,
-          visibility: 'visible',  // Explicitly set visibility
-          opacity: 1  // Ensure full opacity
+          visibility: 'visible',
+          opacity: 1
         }}
       >
         Añadir Producto

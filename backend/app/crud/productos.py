@@ -6,14 +6,20 @@ from app.schemas.productos import ProductoCreate
 from app.models.categorias import Categoria
 from sqlalchemy.future import select
 
-async def get_productos(db, categoria: str = None, genero: str = None):
+async def get_productos(db, categoria: str = None, genero: str = None, search_query: str = None):
     query = select(Producto).join(Categoria)
-      
+    
+    # Filtrar por categoría
     if categoria:
         query = query.filter(Categoria.nombre == categoria)
 
+    # Filtrar por género
     if genero:
         query = query.filter(Categoria.genero == genero)
+
+    # Filtrar por nombre del producto
+    if search_query:
+        query = query.filter(Producto.nombre.ilike(f"%{search_query}%"))
 
     result = await db.execute(query)
     return result.scalars().all()

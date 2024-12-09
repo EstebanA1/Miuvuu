@@ -8,18 +8,22 @@ import Content from "./components/Content/Content";
 const HomePage = () => <div>Welcome to the Home Page</div>;
 
 const App = () => {
-  const [filter, setFilter] = useState({ category: null, gender: null });
+  const [filter, setFilter] = useState({ category: null, gender: null, searchQuery: "" });
 
   const handleCategorySelect = (categoryName, gender = null) => {
-    console.log("Categoría seleccionada:", categoryName);
-    console.log("Género:", gender);
-    setFilter({ category: categoryName, gender });
+    console.log("Categoría seleccionada:", categoryName);  
+    console.log("Género:", gender);  
+    setFilter({ category: categoryName, gender, searchQuery: "" });
+  };
+  
+  const handleSearch = (searchQuery) => {
+    setFilter({ ...filter, searchQuery, category: null, gender: null });
   };
 
   return (
     <div className="App">
       <Router>
-        <Header onCategorySelect={handleCategorySelect} />
+        <Header onCategorySelect={handleCategorySelect} onSearch={handleSearch} filter={filter} />
         <Routes>
           <Route
             path="/"
@@ -27,7 +31,7 @@ const App = () => {
               <Content
                 leftVisible={false}
                 rightVisible={false}
-                filter={filter} // Pasamos el filtro completo
+                filter={filter}
               >
                 <HomePage />
               </Content>

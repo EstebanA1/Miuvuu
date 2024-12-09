@@ -29,12 +29,12 @@
 .logo-section {
   display: flex;
   align-items: center;
+  margin-right: 155px;
 }
 
 .logo {
   height: 40px;
-  padding: 10px;
-  margin-right: 10px;
+  padding: 5px;
 }
 
 .logo-text {
@@ -67,29 +67,42 @@
 
 .header-icons {
   display: flex;
-  gap: 20px;
+  gap: 15px;
   align-items: center;
-  position: relative; 
 }
 
 .search-container {
   display: flex;
   align-items: center;
-  position: absolute;
-  z-index: 10; 
+  background-color: rgba(255, 255, 255, 0.1);
+  position: relative;
+  border-radius: 4px;
+  padding: 0 8px;
+  width: 200px; 
+  transition: all 0.3s ease-in-out;
+  gap: 8px; 
 }
 
 .search-container input {
-  width: 150px;
+  width: 100%; 
   padding: 5px 8px;
   border-radius: 4px;
   background-color: rgba(69, 69, 69, 0.08);
-  border: none;
-  z-index: 10;
+  border: 1px solid transparent; 
+  transition: opacity 0.3s ease, border-color 0.3s ease;
 }
 
-.header-icons .MuiIconButton-root {
-  position: relative; 
+.search-container input:focus {
+  outline: none; 
+  border-color: rgba(255, 255, 255, 0.3); 
+}
+
+.search-container input.visible {
+  opacity: 1;
+}
+
+.search-container .MuiIconButton-root {
+  padding: 0;
 }
 
 .subcategories {

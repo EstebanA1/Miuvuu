@@ -16,9 +16,10 @@ def generate_custom_errors(error):
 async def listar_productos(
     categoria: Optional[str] = None,
     genero: Optional[str] = None,
+    searchQuery: Optional[str] = None,
     db: AsyncSession = Depends(get_db)
 ):
-    return await get_productos(db, categoria=categoria, genero=genero)
+    return await get_productos(db, categoria=categoria, genero=genero, search_query=searchQuery)
 
 # Obtener un producto por ID
 @router.get("/{producto_id}", response_model=Producto, responses={404: {"description": "Producto no encontrado"}})
