@@ -84,11 +84,9 @@ const Content = ({ leftVisible, rightVisible, filter }) => {
           zIndex: 100
         }}>
           <div style={{
-            backgroundColor: 'white',
             padding: '20px',
             borderRadius: '8px',
             width: '80%',
-            maxWidth: '600px'
           }}>
             <AddProductForm closeModal={handleCloseAddProductForm} />
           </div>

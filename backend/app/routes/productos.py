@@ -5,13 +5,21 @@ from app.schemas.productos import Producto, ProductoCreate
 from app.crud.productos import get_productos, get_producto, create_producto, update_producto, delete_producto
 from app.validators.productos import ProductoValidator
 from typing import Optional
+from PIL import Image
+from pathlib import Path
 
 router = APIRouter(prefix="/productos", tags=["productos"])
 
-def generate_custom_errors(error):
-    return {"error": "Error en los datos del producto", "detalles": str(error)}
+UPLOAD_DIR = Path("uploads")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-# Obtener todos los productos
+def convert_to_webp(image_path: Path) -> Path:
+    """Convierte una imagen a formato .webp si no está ya en ese formato."""
+    with Image.open(image_path) as img:
+        webp_path = image_path.with_suffix('.webp')
+        img.save(webp_path, format="WEBP", quality=100)
+    return webp_path
+
 @router.get("/", response_model=list[Producto], response_description="Lista de todos los productos")
 async def listar_productos(
     categoria: Optional[str] = None,
@@ -21,7 +29,7 @@ async def listar_productos(
 ):
     return await get_productos(db, categoria=categoria, genero=genero, search_query=searchQuery)
 
-# Obtener un producto por ID
+
 @router.get("/{producto_id}", response_model=Producto, responses={404: {"description": "Producto no encontrado"}})
 async def obtener_producto(producto_id: int, db: AsyncSession = Depends(get_db)):
     producto = await get_producto(db, producto_id)
@@ -31,7 +39,7 @@ async def obtener_producto(producto_id: int, db: AsyncSession = Depends(get_db))
         )
     return producto
 
-# Crear un nuevo producto
+
 @router.post("/", response_model=Producto, responses={422: {"description": "Error en los datos de entrada"}})
 async def crear_producto(
     nombre: str = Form(...),
@@ -42,20 +50,26 @@ async def crear_producto(
     image: Optional[UploadFile] = File(None),
     db: AsyncSession = Depends(get_db),
 ):
-    # Valida los campos (si es necesario)
     ProductoValidator.validate_nombre(nombre)
     ProductoValidator.validate_precio(precio)
     ProductoValidator.validate_cantidad(cantidad)
 
-    # Maneja la imagen
+    if image and image.content_type not in ["image/png", "image/jpeg", "image/jpg", "image/webp"]:
+        raise HTTPException(status_code=400, detail="Formato de imagen no soportado, se permite .png, .jpeg, .jpg y .webp")
+
     image_url = None
     if image:
-        # Guarda la imagen en una carpeta del servidor (implementa esto según tus necesidades)
-        image_url = f"/uploads/{image.filename}"
-        with open(f"uploads/{image.filename}", "wb") as buffer:
+        image_path = UPLOAD_DIR / image.filename
+        with open(image_path, "wb") as buffer:
             buffer.write(await image.read())
+        
+        if image.content_type != "image/webp":
+            webp_image_path = convert_to_webp(image_path)
+            image_path.unlink()
+            image_url = f"/uploads/{webp_image_path.name}"
+        else:
+            image_url = f"/uploads/{image_path.name}"
 
-    # Crea el producto
     producto_data = ProductoCreate(
         nombre=nombre,
         descripcion=descripcion,
@@ -67,9 +81,6 @@ async def crear_producto(
     return await create_producto(db, producto_data)
 
 
-
-
-# Actualizar un producto
 @router.put("/{producto_id}", response_model=Producto, responses={404: {"description": "Producto no encontrado"}})
 async def actualizar_producto(producto_id: int, producto: ProductoCreate = Body(...), db: AsyncSession = Depends(get_db)):
     db_producto = await update_producto(db, producto_id, producto)
@@ -79,7 +90,7 @@ async def actualizar_producto(producto_id: int, producto: ProductoCreate = Body(
         )
     return db_producto
 
-# Eliminar un producto
+
 @router.delete("/{producto_id}", response_model=Producto, responses={404: {"description": "Producto no encontrado"}})
 async def eliminar_producto(producto_id: int, db: AsyncSession = Depends(get_db)):
     db_producto = await delete_producto(db, producto_id)
@@ -88,3 +99,6 @@ async def eliminar_producto(producto_id: int, db: AsyncSession = Depends(get_db)
             status_code=status.HTTP_404_NOT_FOUND, detail="Producto no encontrado"
         )
     return db_producto
+
+def generate_custom_errors(error):
+    return {"error": "Error en los datos del producto", "detalles": str(error)}
