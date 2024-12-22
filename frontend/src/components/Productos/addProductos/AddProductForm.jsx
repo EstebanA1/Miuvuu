@@ -1,9 +1,9 @@
 import './AddProductForm.css';
 import React, { useState, useEffect, useRef } from 'react';
 import ImageEditor from '../ImageEditor/ImageEditor';
-import { addProduct } from '../../services/productos';
+import { addProduct } from '../../../services/productos';
+import { getCategorias } from '../../../services/categorias';
 import { Autocomplete, TextField } from '@mui/material';
-import { getCategorias } from '../../services/categorias';
 
 const AddProductForm = ({ closeModal }) => {
   const [productName, setProductName] = useState("");
@@ -14,12 +14,10 @@ const AddProductForm = ({ closeModal }) => {
   const [productImage, setProductImage] = useState(null);
   const [editedImageBlob, setEditedImageBlob] = useState(null);
 
-  // Estados secundarios (estados de configuración o control)
   const [categories, setCategories] = useState([]);
   const [showImageEditor, setShowImageEditor] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Obtener categorías al cargar el componente
   useEffect(() => {
     const fetchCategorias = async () => {
       try {
@@ -32,7 +30,6 @@ const AddProductForm = ({ closeModal }) => {
     fetchCategorias();
   }, []);
 
-  // Limpiar URLs de objetos cuando el componente se desmonte
   useEffect(() => {
     return () => {
       if (productImage) {
@@ -44,7 +41,6 @@ const AddProductForm = ({ closeModal }) => {
     };
   }, [productImage, editedImageBlob]);
 
-  // Cambiar imagen (resetear la imagen actual y abrir selector)
   const changeImage = () => {
     setProductImage(null);
     setEditedImageBlob(null);
@@ -58,7 +54,6 @@ const AddProductForm = ({ closeModal }) => {
     }, 0);
   };
 
-  // Manejar cambio de archivo seleccionado
   const onFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -68,20 +63,18 @@ const AddProductForm = ({ closeModal }) => {
         return;
       }
 
-      // Revocar la URL anterior si existe
       if (productImage) {
         URL.revokeObjectURL(URL.createObjectURL(productImage));
       }
 
       setProductImage(file);
       setEditedImageBlob(null);
-      setShowImageEditor(false); 
+      setShowImageEditor(false);
     }
 
     e.target.value = null;
   };
 
-  // Resetear todos los campos del formulario
   const resetForm = () => {
     setProductName("");
     setProductDescription("");
@@ -92,52 +85,66 @@ const AddProductForm = ({ closeModal }) => {
     setEditedImageBlob(null);
   };
 
-  // Manejar el envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!productName || !productDescription || !productPrice || !productQuantity || !productCategory || (!productImage && !editedImageBlob)) {
+  
+    if (
+      !productName ||
+      !productDescription ||
+      !productPrice ||
+      !productQuantity ||
+      !productCategory ||
+      (!productImage && !editedImageBlob)
+    ) {
       alert("Por favor, complete todos los campos.");
       return;
     }
-
-    const [selectedGenero, selectedNombre] = productCategory.split('-');
+  
     const selectedCategory = categories.find(
-      (cat) => cat.genero === selectedGenero && cat.nombre === selectedNombre
+      (cat) => `${cat.genero}-${cat.nombre}` === productCategory
     );
-
+  
     if (!selectedCategory) {
       alert("La categoría seleccionada no existe. Por favor, verifica.");
       return;
     }
-
-    const productData = new FormData();
-    productData.append("nombre", productName);
-    productData.append("descripcion", productDescription);
-    productData.append("precio", productPrice);
-    productData.append("cantidad", productQuantity);
-    productData.append("categoria_id", selectedCategory.id);
-    productData.append("image", editedImageBlob || productImage);
+  
+    const productData = {
+      nombre: productName,
+      descripcion: productDescription,
+      precio: productPrice,
+      cantidad: productQuantity,
+      categoria_id: selectedCategory.id,
+      image_url: productImage,
+    };
+    
+    console.log("Datos del producto:", productData);
 
     try {
-      const response = await addProduct(productData);
-      alert(response.message);
-      resetForm();
-      closeModal();
+      const response = await addProduct(productData); 
+      console.log("Respuesta del servidor:", response);
+  
+      if (response.image_url) {
+        alert("Producto creado exitosamente.");
+        resetForm();
+        closeModal();
+      } else {
+        alert("Hubo un problema al crear el producto.");
+      }
     } catch (error) {
+      console.error("Error al agregar el producto:", error);
       alert("Hubo un error al agregar el producto.");
     }
   };
+  
 
   return (
     <div className="modal">
       <div className="modal-content">
         <h2 className='title-form'>Agregar Producto</h2>
 
-        {/* Nuevo div de modal-body */}
         <div className="modal-body add-product-body">
           <form onSubmit={handleSubmit} encType="multipart/form-data">
-            {/* Nombre del producto */}
             <div>
               <TextField
                 label="Nombre del Producto"
@@ -153,7 +160,6 @@ const AddProductForm = ({ closeModal }) => {
               />
             </div>
 
-            {/* Descripción */}
             <div>
               <TextField
                 label="Descripción"
@@ -172,7 +178,6 @@ const AddProductForm = ({ closeModal }) => {
               />
             </div>
 
-            {/* Precio */}
             <div>
               <TextField
                 label="Precio USD"
@@ -189,7 +194,6 @@ const AddProductForm = ({ closeModal }) => {
               />
             </div>
 
-            {/* Cantidad */}
             <div>
               <TextField
                 label="Cantidad"
@@ -206,7 +210,6 @@ const AddProductForm = ({ closeModal }) => {
               />
             </div>
 
-            {/* Categoría */}
             <div className='category'>
               <Autocomplete
                 options={categories.sort((a, b) => {
@@ -237,7 +240,6 @@ const AddProductForm = ({ closeModal }) => {
               />
             </div>
 
-            {/* Sección de imagen con nuevo div */}
             <div className="image-upload-section">
               {!productImage && (
                 <div>
@@ -299,7 +301,6 @@ const AddProductForm = ({ closeModal }) => {
           </form>
         </div >
 
-        {/* Editor de imágenes */}
         {
           showImageEditor && (
             <ImageEditor

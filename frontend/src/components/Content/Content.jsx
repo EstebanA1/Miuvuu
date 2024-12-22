@@ -1,55 +1,74 @@
-import React, { useEffect, useState } from "react";
-import { getProductos } from "../../services/productos";
-import Carousel from "../Carousel/Carousel";
 import "./Content.css";
-import AddProductForm from "../addProductos/AddProductForm";
-import { Button } from "@mui/material";
-import AddIcon from '@mui/icons-material/Add';
+import Carousel from "../Carousel/Carousel";
+import React, { useEffect, useState } from "react";
+import { Button, IconButton } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import AddProductForm from "../Productos/addProductos/AddProductForm";
+import EditProductForm from "../Productos/editProductos/EditProductForm";
+import DeleteProductForm from "../Productos/deleteProductos/DeleteProductForm";
+import { getProductos } from "../../services/productos";
 
 const Content = ({ leftVisible, rightVisible, filter }) => {
   const [productos, setProductos] = useState([]);
-  const [isAddProductFormOpen, setIsAddProductFormOpen] = useState(false);
+  const [modalState, setModalState] = useState({
+    add: false,
+    edit: false,
+    delete: false,
+  });
+  const [productToEdit, setProductToEdit] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
     const fetchProductos = async () => {
       try {
         const query = [];
-        if (filter.category) {
-          query.push(`categoria=${encodeURIComponent(filter.category)}`);
-          console.log("Filtro por categoría:", filter.category);
-        }
-        if (filter.gender) {
-          query.push(`genero=${encodeURIComponent(filter.gender)}`);
-          console.log("Filtro por género:", filter.gender);
-        }
-        if (filter.searchQuery) {
-          query.push(`searchQuery=${encodeURIComponent(filter.searchQuery)}`);
-          console.log("Filtro por búsqueda:", filter.searchQuery);
-        }
-        
+        if (filter.category) query.push(`categoria=${encodeURIComponent(filter.category)}`);
+        if (filter.gender) query.push(`genero=${encodeURIComponent(filter.gender)}`);
+        if (filter.searchQuery) query.push(`searchQuery=${encodeURIComponent(filter.searchQuery)}`);
+
         const queryString = query.length > 0 ? `?${query.join("&")}` : "";
         const data = await getProductos(queryString);
-  
         setProductos(data);
       } catch (error) {
-        console.error("Hubo un error al obtener los productos", error);
+        console.error("Error al obtener productos", error);
       }
     };
-  
     fetchProductos();
   }, [filter]);
-  
-  
 
-  const handleOpenAddProductForm = () => {
-    setIsAddProductFormOpen(true);
+  const handleOpenModal = (type, product = null) => {
+    setModalState((prevState) => ({ ...prevState, [type]: true }));
+    if (type === "edit") setProductToEdit(product);
+    if (type === "delete") setSelectedProduct(product);
   };
 
-  const handleCloseAddProductForm = () => {
-    setIsAddProductFormOpen(false);
+  const handleCloseModal = (type) => {
+    setModalState((prevState) => ({ ...prevState, [type]: false }));
+    if (type === "edit") setProductToEdit(null);
+    if (type === "delete") setSelectedProduct(null);
   };
 
-  const latestProducts = productos.slice(0, 5);
+  const handleProductDeleted = () => {
+    setProductos((prevProductos) =>
+      prevProductos.filter((prod) => prod.id !== selectedProduct.id)
+    );
+    handleCloseModal("delete");
+  };
+
+  const handleUpdateProduct = async (updatedProduct) => {
+    try {
+      // Asume que `updateProduct` es una función definida para actualizar el producto
+      const updatedData = await updateProduct(updatedProduct);
+      setProductos((prevProductos) =>
+        prevProductos.map((prod) => (prod.id === updatedData.id ? updatedData : prod))
+      );
+      handleCloseModal("edit");
+    } catch (error) {
+      console.error("Error al actualizar el producto", error);
+    }
+  };
 
   return (
     <div className="content-container">
@@ -57,48 +76,27 @@ const Content = ({ leftVisible, rightVisible, filter }) => {
         variant="contained"
         color="primary"
         startIcon={<AddIcon />}
-        onClick={handleOpenAddProductForm}
-        style={{
-          position: 'absolute',
-          top: '100px',
-          left: '10px',
-          zIndex: 10,
-          visibility: 'visible',
-          opacity: 1
-        }}
+        onClick={() => handleOpenModal("add")}
+        className="add-product-button"
       >
         Añadir Producto
       </Button>
 
-      {isAddProductFormOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 100
-        }}>
-          <div style={{
-            padding: '20px',
-            borderRadius: '8px',
-            width: '80%',
-          }}>
-            <AddProductForm closeModal={handleCloseAddProductForm} />
+      {modalState.add && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <AddProductForm closeModal={() => handleCloseModal("add")} />
           </div>
         </div>
       )}
 
-      <div className={`leftContainer ${leftVisible ? "" : "hidden"}`}></div>
+      <div className={`leftContainer ${leftVisible ? "" : "hidden"}`} />
 
       <div className="centerContainer">
         <div className="center-content">
           <h2>
-            Productos {filter.category ? `en ${filter.category}` : filter.gender ? `del género ${filter.gender}` : ""}
+            Productos{" "}
+            {filter.category ? `en ${filter.category}` : filter.gender ? `del género ${filter.gender}` : ""}
           </h2>
           <div className="product-list">
             {productos.map((producto) => (
@@ -107,15 +105,38 @@ const Content = ({ leftVisible, rightVisible, filter }) => {
                 <p>{producto.descripcion}</p>
                 <p>Precio: ${producto.precio}</p>
                 <p>Cantidad: {producto.cantidad}</p>
-                {producto.image_url && (
-                  <img src={producto.image_url} alt={producto.nombre} />
-                )}
+                {producto.image_url && <img src={producto.image_url} alt={producto.nombre} />}
+                <div className="card-actions">
+                  <IconButton color="primary" onClick={() => handleOpenModal("edit", producto)}>
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton color="secondary" onClick={() => handleOpenModal("delete", producto)}>
+                    <DeleteIcon />
+                  </IconButton>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
-      <div className={`rightContainer ${rightVisible ? "" : "hidden"}`}></div>
+
+      <div className={`rightContainer ${rightVisible ? "" : "hidden"}`} />
+
+      {modalState.edit && productToEdit && (
+        <EditProductForm
+          product={productToEdit}
+          onUpdate={handleUpdateProduct}
+          onCancel={() => handleCloseModal("edit")}
+        />
+      )}
+      {modalState.delete && selectedProduct && (
+        <DeleteProductForm
+          productName={selectedProduct.nombre}
+          productId={selectedProduct.id}
+          onCancel={() => handleCloseModal("delete")}
+          onProductDeleted={handleProductDeleted}
+        />
+      )}
     </div>
   );
 };
