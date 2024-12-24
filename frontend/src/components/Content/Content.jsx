@@ -20,21 +20,22 @@ const Content = ({ leftVisible, rightVisible, filter }) => {
   const [productToEdit, setProductToEdit] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  useEffect(() => {
-    const fetchProductos = async () => {
-      try {
-        const query = [];
-        if (filter.category) query.push(`categoria=${encodeURIComponent(filter.category)}`);
-        if (filter.gender) query.push(`genero=${encodeURIComponent(filter.gender)}`);
-        if (filter.searchQuery) query.push(`searchQuery=${encodeURIComponent(filter.searchQuery)}`);
+  const fetchProductos = async () => {
+    try {
+      const query = [];
+      if (filter.category) query.push(`categoria=${encodeURIComponent(filter.category)}`);
+      if (filter.gender) query.push(`genero=${encodeURIComponent(filter.gender)}`);
+      if (filter.searchQuery) query.push(`searchQuery=${encodeURIComponent(filter.searchQuery)}`);
 
-        const queryString = query.length > 0 ? `?${query.join("&")}` : "";
-        const data = await getProductos(queryString);
-        setProductos(data);
-      } catch (error) {
-        console.error("Error al obtener productos", error);
-      }
-    };
+      const queryString = query.length > 0 ? `?${query.join("&")}` : "";
+      const data = await getProductos(queryString);
+      setProductos(data);
+    } catch (error) {
+      console.error("Error al obtener productos", error);
+    }
+  };
+
+  useEffect(() => {
     fetchProductos();
   }, [filter]);
 
@@ -51,23 +52,13 @@ const Content = ({ leftVisible, rightVisible, filter }) => {
   };
 
   const handleProductDeleted = () => {
-    setProductos((prevProductos) =>
-      prevProductos.filter((prod) => prod.id !== selectedProduct.id)
-    );
+    fetchProductos(); // Actualizar la lista después de eliminar
     handleCloseModal("delete");
   };
 
   const handleUpdateProduct = async (updatedProduct) => {
-    try {
-      // Asume que `updateProduct` es una función definida para actualizar el producto
-      const updatedData = await updateProduct(updatedProduct);
-      setProductos((prevProductos) =>
-        prevProductos.map((prod) => (prod.id === updatedData.id ? updatedData : prod))
-      );
-      handleCloseModal("edit");
-    } catch (error) {
-      console.error("Error al actualizar el producto", error);
-    }
+    await fetchProductos(); // Actualizar la lista después de editar
+    handleCloseModal("edit");
   };
 
   return (
@@ -85,7 +76,10 @@ const Content = ({ leftVisible, rightVisible, filter }) => {
       {modalState.add && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <AddProductForm closeModal={() => handleCloseModal("add")} />
+            <AddProductForm 
+              closeModal={() => handleCloseModal("add")} 
+              onSuccess={fetchProductos}
+            />
           </div>
         </div>
       )}

@@ -35,23 +35,42 @@ export const addProduct = async (product) => {
   }
 };
 
-export const editProduct = async (id, updatedProduct) => {
-  const formData = new FormData();
-  formData.append("nombre", updatedProduct.nombre);
-  formData.append("descripcion", updatedProduct.descripcion);
-  formData.append("precio", updatedProduct.precio);
-  formData.append("cantidad", updatedProduct.cantidad);
-  formData.append("categoria_id", updatedProduct.categoria_id);
-  if (updatedProduct.image_url) formData.append("image", updatedProduct.image_url);
-
+export const editProduct = async (id, formData) => {
   try {
-    const response = await axios.put(`${API_URL}${id}/`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
+    const url = `${API_URL}${id}`;
+    
+    if (formData.get('precio')) {
+      formData.set('precio', Number(formData.get('precio')));
+    }
+    if (formData.get('cantidad')) {
+      formData.set('cantidad', Number(formData.get('cantidad')));
+    }
+    if (formData.get('categoria_id')) {
+      formData.set('categoria_id', Number(formData.get('categoria_id')));
+    }
+
+    for (let pair of formData.entries()) {
+      console.log(pair[0] + ': ' + pair[1]);
+    }
+
+    const response = await axios.put(url, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     });
-    return response.data;
+
+    const data = response.data;
+    if (data.image_url) {
+      data.image_url = `${API_IMG}${data.image_url}`;
+    }
+
+    return data;
   } catch (error) {
     console.error("Error al editar el producto:", error);
-    throw error.response?.data || error;
+    if (error.response?.data?.detail) {
+      throw error.response.data;
+    }
+    throw error;
   }
 };
 

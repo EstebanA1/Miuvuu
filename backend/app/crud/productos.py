@@ -63,7 +63,9 @@ async def update_producto(db: AsyncSession, producto_id: int, producto: Producto
     db_producto.precio = producto.precio
     db_producto.cantidad = producto.cantidad
     db_producto.categoria_id = producto.categoria_id
-    db_producto.image_url = producto.image_url
+    
+    if producto.image_url is not None:
+        db_producto.image_url = producto.image_url
 
     await db.commit()
     await db.refresh(db_producto)
