@@ -1,0 +1,30 @@
+.delete-product-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.delete-product-modal {
+    background-color: white;
+    padding: 0 20px 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.delete-product-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.delete-product-confirm {
+    margin-right: 10px;
+    background: rgb(207, 21, 21);
+}

@@ -84,5 +84,5 @@
 }
 
 .hidden {
-  display: none;
+  transition: 0.6s;
 }

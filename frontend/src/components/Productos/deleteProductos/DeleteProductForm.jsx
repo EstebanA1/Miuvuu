@@ -1,13 +1,14 @@
 import React from "react";
 import { Button } from "@mui/material";
 import { deleteProduct } from "../../../services/productos";
+import "./DeleteProductForm.css";
 
 const DeleteProductForm = ({ productName, productId, onCancel, onProductDeleted }) => {
     const handleDelete = async () => {
         try {
-            await deleteProduct(productId); 
+            await deleteProduct(productId);
             alert(`Producto ${productName} eliminado exitosamente`);
-            onProductDeleted(); 
+            onProductDeleted();
         } catch (error) {
             const errorMessage = error.detail || error.message || "Error desconocido al eliminar el producto";
             alert(`Error: ${errorMessage}`);
@@ -16,44 +17,24 @@ const DeleteProductForm = ({ productName, productId, onCancel, onProductDeleted 
     };
 
     return (
-        <div
-            style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                backgroundColor: "rgba(0,0,0,0.5)",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                zIndex: 100,
-            }}
-        >
-            <div
-                style={{
-                    backgroundColor: "white",
-                    padding: "20px",
-                    borderRadius: "8px",
-                    textAlign: "center",
-                }}
-            >
+        <div className="delete-product-overlay">
+            <div className="delete-product-modal">
                 <h2>¿Seguro que quieres eliminar el producto?</h2>
                 <p>
                     El producto <strong>{productName}</strong> será eliminado
                     permanentemente.
                 </p>
-                <div style={{ marginTop: "20px" }}>
+                <div className="delete-product-buttons">
+                    <Button variant="outlined" onClick={onCancel}>
+                        Cancelar
+                    </Button>
                     <Button
                         variant="contained"
                         color="secondary"
                         onClick={handleDelete}
-                        style={{ marginRight: "10px" }}
+                        className="delete-product-confirm"
                     >
                         Sí, eliminar
-                    </Button>
-                    <Button variant="outlined" onClick={onCancel}>
-                        Cancelar
                     </Button>
                 </div>
             </div>

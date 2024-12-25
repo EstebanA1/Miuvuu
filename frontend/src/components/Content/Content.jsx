@@ -89,8 +89,7 @@ const Content = ({ leftVisible, rightVisible, filter }) => {
       <div className="centerContainer">
         <div className="center-content">
           <h2>
-            Productos{" "}
-            {filter.category ? `en ${filter.category}` : filter.gender ? `del género ${filter.gender}` : ""}
+            {filter.category ? `${filter.category} de ${filter.gender}` : filter.gender ? `Prendas de ${filter.gender}` : ""}
           </h2>
           <div className="product-list">
             {productos.map((producto) => (
@@ -101,10 +100,10 @@ const Content = ({ leftVisible, rightVisible, filter }) => {
                 <p>Cantidad: {producto.cantidad}</p>
                 {producto.image_url && <img src={producto.image_url} alt={producto.nombre} />}
                 <div className="card-actions">
-                  <IconButton color="primary" onClick={() => handleOpenModal("edit", producto)}>
+                  <IconButton sx={{ color: 'rgb(17 96 174);' }} onClick={() => handleOpenModal("edit", producto)}>
                     <EditIcon />
                   </IconButton>
-                  <IconButton color="secondary" onClick={() => handleOpenModal("delete", producto)}>
+                  <IconButton sx={{ color: 'rgb(207 21 21)' }} onClick={() => handleOpenModal("delete", producto)}>
                     <DeleteIcon />
                   </IconButton>
                 </div>
