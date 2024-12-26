@@ -1,6 +1,5 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ARRAY
 from app.database import Base
-
 
 class Usuario(Base):
     __tablename__ = "usuarios"
@@ -9,4 +8,5 @@ class Usuario(Base):
     nombre = Column(String(100), index=True)
     correo = Column(String(100), unique=True, index=True)
     contraseña = Column(String(100))
-    metodo_pago = Column("metodopago", String(100))
+    metodo_pago = Column("metodo_pago", ARRAY(String(100)))
+    rol = Column(String(50)) 

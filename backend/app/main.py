@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routes import usuarios, categorias, productos
 from app.routes.productos import generate_custom_errors
 from fastapi.staticfiles import StaticFiles
+from app.routes.authentication import router as auth_router
 
 app = FastAPI(
     title="Miuvuu API",
@@ -24,6 +25,7 @@ app.add_middleware(
 )
 
 app.include_router(usuarios.router, prefix="/api", tags=["usuarios"])
+app.include_router(auth_router, prefix="/api", tags=["autenticación"])
 app.include_router(categorias.router, prefix="/api", tags=["categorias"])
 app.include_router(productos.router, prefix="/api", tags=["productos"])
 

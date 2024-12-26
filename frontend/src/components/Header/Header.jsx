@@ -6,6 +6,10 @@ import { getCategorias } from "../../services/categorias";
 import React, { useEffect, useState, useRef } from "react";
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import AuthModal from '../Auth/AuthModal';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+
 
 const Header = ({ onCategorySelect, onSearch, filter }) => {
   const [isVisible, setIsVisible] = useState(true);
@@ -16,6 +20,35 @@ const Header = ({ onCategorySelect, onSearch, filter }) => {
   const [hideTimeout, setHideTimeout] = useState(null);
   const [searchQuery, setSearchQuery] = useState(filter.searchQuery);
   const inputRef = useRef(null);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleAccountClick = (event) => {
+    if (user) {
+      setAnchorEl(event.currentTarget);
+    } else {
+      setAuthModalOpen(true);
+    }
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    handleMenuClose();
+  };
 
   const handleScroll = () => {
     const currentScrollY = window.scrollY;
@@ -151,12 +184,26 @@ const Header = ({ onCategorySelect, onSearch, filter }) => {
           <IconButton>
             <ShoppingCartIcon />
           </IconButton>
-          <IconButton>
+          <IconButton onClick={handleAccountClick}>
             <AccountCircleIcon />
           </IconButton>
+
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+          >
+            <MenuItem onClick={handleMenuClose}>Mi Perfil</MenuItem>
+            <MenuItem onClick={handleMenuClose}>Mis Pedidos</MenuItem>
+            <MenuItem onClick={handleLogout}>Cerrar Sesión</MenuItem>
+          </Menu>
         </div>
       </div>
-    </header>
+      <AuthModal
+        open={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+      />
+    </header >
   );
 };
 

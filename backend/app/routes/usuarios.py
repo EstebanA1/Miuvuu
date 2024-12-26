@@ -7,8 +7,11 @@ from app.crud.usuarios import (
     get_usuario_by_id,
     delete_usuario,
     update_usuario,
-)
+    get_usuario_by_correo
+    )
+
 from app.schemas.usuarios import UsuarioCreate, Usuario, UsuarioSalida
+from sqlalchemy.future import select
 
 router = APIRouter()
 
@@ -37,6 +40,13 @@ async def read_usuarios(db: AsyncSession = Depends(get_db)):
 @router.get("/usuarios/{usuario_id}", response_model=UsuarioSalida)
 async def read_usuario_by_id(usuario_id: int, db: AsyncSession = Depends(get_db)):
     usuario = await get_usuario_by_id(db, usuario_id)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return usuario
+
+@router.get("/usuarios/correo/{correo}", response_model=UsuarioSalida)
+async def read_usuario_by_correo(correo: str, db: AsyncSession = Depends(get_db)):
+    usuario = await get_usuario_by_correo(db, correo)
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return usuario

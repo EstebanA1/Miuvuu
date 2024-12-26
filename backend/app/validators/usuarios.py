@@ -1,5 +1,5 @@
 from pydantic_core import PydanticCustomError
-from typing import Any
+from typing import Any, List
 import re
 
 
@@ -38,38 +38,55 @@ class UsuarioValidator:
             raise PydanticCustomError(
                 "contraseña_invalida", "La contraseña debe tener al menos 8 caracteres"
             )
-        if len(contraseña) > 72:  # Límite común para hash bcrypt
-            raise PydanticCustomError(
-                "contraseña_invalida",
-                "La contraseña no puede exceder los 72 caracteres",
-            )
-        if not re.search(r"[A-Z]", contraseña):
-            raise PydanticCustomError(
-                "contraseña_invalida",
-                "La contraseña debe contener al menos una letra mayúscula",
-            )
-        if not re.search(r"[a-z]", contraseña):
-            raise PydanticCustomError(
-                "contraseña_invalida",
-                "La contraseña debe contener al menos una letra minúscula",
-            )
-        if not re.search(r"\d", contraseña):
-            raise PydanticCustomError(
-                "contraseña_invalida", "La contraseña debe contener al menos un número"
-            )
-        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", contraseña):
-            raise PydanticCustomError(
-                "contraseña_invalida",
-                "La contraseña debe contener al menos un carácter especial",
-            )
+        # if len(contraseña) > 72:  # Límite común para hash bcrypt
+        #     raise PydanticCustomError(
+        #         "contraseña_invalida",
+        #         "La contraseña no puede exceder los 72 caracteres",
+        #     )
+        # if not re.search(r"[A-Z]", contraseña):
+        #     raise PydanticCustomError(
+        #         "contraseña_invalida",
+        #         "La contraseña debe contener al menos una letra mayúscula",
+        #     )
+        # if not re.search(r"[a-z]", contraseña):
+        #     raise PydanticCustomError(
+        #         "contraseña_invalida",
+        #         "La contraseña debe contener al menos una letra minúscula",
+        #     )
+        # if not re.search(r"\d", contraseña):
+        #     raise PydanticCustomError(
+        #         "contraseña_invalida", "La contraseña debe contener al menos un número"
+        #     )
+        # if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", contraseña):
+        #     raise PydanticCustomError(
+        #         "contraseña_invalida",
+        #         "La contraseña debe contener al menos un carácter especial",
+        #     )
 
     @staticmethod
-    def validate_metodo_pago(metodo_pago: str) -> None:
+    def validate_metodo_pago(metodos_pago: List[str]) -> None:
         metodos_validos = ["Tarjeta de crédito", "Tarjeta de débito", "Paypal"]
-        if metodo_pago not in metodos_validos:
+        
+        if not metodos_pago:
             raise PydanticCustomError(
                 "metodo_pago_invalido",
-                f"El método de pago debe ser uno de los siguientes: {', '.join(metodos_validos)}",
+                "Debe especificar al menos un método de pago"
+            )
+            
+        for metodo in metodos_pago:
+            if metodo not in metodos_validos:
+                raise PydanticCustomError(
+                    "metodo_pago_invalido",
+                    f"El método de pago debe ser uno de los siguientes: {', '.join(metodos_validos)}"
+                )
+
+    @staticmethod
+    def validate_rol(rol: str) -> None:
+        roles_validos = ["admin", "usuario", "vendedor"]
+        if rol not in roles_validos:
+            raise PydanticCustomError(
+                "rol_invalido",
+                f"El rol debe ser uno de los siguientes: {', '.join(roles_validos)}"
             )
 
     @staticmethod
@@ -79,7 +96,7 @@ class UsuarioValidator:
         Si el contexto es 'salida', no se aplican validaciones estrictas.
         """
         if contexto == "salida":
-            return values  # Omitir validaciones si el contexto es salida
+            return values
 
         # Extraer valores del objeto recibido
         if hasattr(values, "model_dump"):
@@ -94,7 +111,7 @@ class UsuarioValidator:
             except (TypeError, ValueError):
                 values_dict = {
                     k: getattr(values, k)
-                    for k in ["nombre", "correo", "contraseña", "metodo_pago"]
+                    for k in ["nombre", "correo", "contraseña", "metodo_pago", "rol"]
                     if hasattr(values, k)
                 }
 
@@ -107,5 +124,7 @@ class UsuarioValidator:
             UsuarioValidator.validate_contraseña(values_dict["contraseña"])
         if "metodo_pago" in values_dict:
             UsuarioValidator.validate_metodo_pago(values_dict["metodo_pago"])
+        if "rol" in values_dict:
+            UsuarioValidator.validate_rol(values_dict["rol"])
 
         return values_dict
