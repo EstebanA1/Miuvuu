@@ -1,6 +1,5 @@
 import "./Content.css";
 import Carousel from "../Carousel/Carousel";
-import React, { useEffect, useState } from "react";
 import { Button, IconButton } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -9,17 +8,24 @@ import AddProductForm from "../Productos/addProductos/AddProductForm";
 import EditProductForm from "../Productos/editProductos/EditProductForm";
 import DeleteProductForm from "../Productos/deleteProductos/DeleteProductForm";
 import { getProductos } from "../../services/productos";
+import { authService } from "../../services/authService";
+import React, { useState, useEffect, useRef } from "react";
 
-const Content = ({ leftVisible, rightVisible, filter }) => {
+const Content = ({ leftVisible, rightVisible, filter, children }) => {
   const [productos, setProductos] = useState([]);
   const [modalState, setModalState] = useState({
     add: false,
     edit: false,
     delete: false,
   });
-  const [productToEdit, setProductToEdit] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [productToEdit, setProductToEdit] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
+  const hasAdminPrivileges = () => {
+    const user = authService.getCurrentUser();
+    return user && (user.rol === 'admin' || user.rol === 'vendedor');
+  };
   const fetchProductos = async () => {
     try {
       const query = [];
@@ -39,7 +45,22 @@ const Content = ({ leftVisible, rightVisible, filter }) => {
     fetchProductos();
   }, [filter]);
 
+  useEffect(() => {
+    const checkUserRole = () => {
+      const user = authService.getCurrentUser();
+      if (user && (user.rol === 'admin' || user.rol === 'vendedor')) {
+        setIsAdmin(true);
+      }
+    };
+
+    checkUserRole();
+  }, []);
+
   const handleOpenModal = (type, product = null) => {
+    if (!hasAdminPrivileges) {
+      console.warn("Acceso no autorizado");
+      return;
+    }
     setModalState((prevState) => ({ ...prevState, [type]: true }));
     if (type === "edit") setProductToEdit(product);
     if (type === "delete") setSelectedProduct(product);
@@ -52,32 +73,32 @@ const Content = ({ leftVisible, rightVisible, filter }) => {
   };
 
   const handleProductDeleted = () => {
-    fetchProductos(); // Actualizar la lista después de eliminar
+    fetchProductos();
     handleCloseModal("delete");
   };
 
   const handleUpdateProduct = async (updatedProduct) => {
-    await fetchProductos(); // Actualizar la lista después de editar
+    await fetchProductos();
     handleCloseModal("edit");
   };
 
   return (
     <div className="content-container">
-      <Button
-        variant="contained"
-        color="primary"
-        startIcon={<AddIcon />}
-        onClick={() => handleOpenModal("add")}
-        className="add-product-button"
-      >
-        Añadir Producto
-      </Button>
+      {hasAdminPrivileges() && (
+        <buttom
+          startIcon={<AddIcon />}
+          onClick={() => handleOpenModal("add")}
+          className="add-product-button"
+        >
+          Añadir Producto
+        </buttom>
+      )}
 
       {modalState.add && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <AddProductForm 
-              closeModal={() => handleCloseModal("add")} 
+            <AddProductForm
+              closeModal={() => handleCloseModal("add")}
               onSuccess={fetchProductos}
             />
           </div>
@@ -94,19 +115,27 @@ const Content = ({ leftVisible, rightVisible, filter }) => {
           <div className="product-list">
             {productos.map((producto) => (
               <div key={producto.id} className="product-card">
-                <h3>{producto.nombre}</h3>
-                <p>{producto.descripcion}</p>
-                <p>Precio: ${producto.precio}</p>
-                <p>Cantidad: {producto.cantidad}</p>
                 {producto.image_url && <img src={producto.image_url} alt={producto.nombre} />}
-                <div className="card-actions">
-                  <IconButton sx={{ color: 'rgb(17 96 174);' }} onClick={() => handleOpenModal("edit", producto)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton sx={{ color: 'rgb(207 21 21)' }} onClick={() => handleOpenModal("delete", producto)}>
-                    <DeleteIcon />
-                  </IconButton>
+                <div className="principalInfo">
+                  <h3>{producto.nombre}</h3>
+                  <p>${producto.precio}</p>
                 </div>
+                {hasAdminPrivileges() && (
+                  <div className="card-actions">
+                    <IconButton
+                      sx={{ color: 'rgb(17 96 174);' }}
+                      onClick={() => handleOpenModal("edit", producto)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      sx={{ color: 'rgb(207 21 21)' }}
+                      onClick={() => handleOpenModal("delete", producto)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </div>
+                )}
               </div>
             ))}
           </div>

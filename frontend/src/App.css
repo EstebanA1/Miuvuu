@@ -18,3 +18,13 @@ html, body {
   footer {
     margin-top: auto;
   }
+
+/* Estilo para el modo oscuro */
+body.dark-mode {
+  background-color: rgb(10 10 10);
+  color: #ffffff;
+}
+
+.header.dark-mode {
+  background-color: #1f1f1f;
+}

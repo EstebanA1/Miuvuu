@@ -1,0 +1,54 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.users-table th,
+.users-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.users-table th {
+    background-color: #f4f4f4;
+}
+
+h1 {
+    text-align: center;
+    margin-top: 6rem;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+}
+
+.contentManageUsers {
+    margin-right: 5rem;
+    margin-left: 5rem;
+    display: grid;
+    row-gap: 20px;
+}
+
+.addUserButton {
+    background-color: rgb(50, 50, 50);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.addUserButton:hover {
+    background-color: rgb(80, 80, 80);
+}

@@ -1,5 +1,7 @@
 import "./Header.css";
-import { IconButton } from '@mui/material';
+import { IconButton, Switch } from '@mui/material';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LightModeIcon from '@mui/icons-material/LightMode';
 import miuvuuLogo from "@assets/miuvuuLogo2.webp";
 import SearchIcon from '@mui/icons-material/Search';
 import { getCategorias } from "../../services/categorias";
@@ -9,7 +11,8 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import AuthModal from '../Auth/AuthModal';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import { useNavigate } from 'react-router-dom';
 
 const Header = ({ onCategorySelect, onSearch, filter }) => {
   const [isVisible, setIsVisible] = useState(true);
@@ -19,15 +22,44 @@ const Header = ({ onCategorySelect, onSearch, filter }) => {
   const [hoveredGenero, setHoveredGenero] = useState(null);
   const [hideTimeout, setHideTimeout] = useState(null);
   const [searchQuery, setSearchQuery] = useState(filter.searchQuery);
+  const [isDarkMode, setIsDarkMode] = useState(false); // Estado para el modo oscuro
   const inputRef = useRef(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const storedTheme = localStorage.getItem("theme");
+    if (storedTheme === "dark") {
+      setIsDarkMode(true);
+      document.body.classList.add("dark-mode");
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
+    if (newMode) {
+      document.body.classList.add("dark-mode");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.body.classList.remove("dark-mode");
+      localStorage.setItem("theme", "light");
+    }
+  };
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        parsedUser.isAdmin = parsedUser.rol === 'admin';
+        setUser(parsedUser);
+        console.log('Usuario cargado:', parsedUser);
+      } catch (error) {
+        console.error('Error al parsear usuario:', error);
+      }
     }
   }, []);
 
@@ -48,6 +80,11 @@ const Header = ({ onCategorySelect, onSearch, filter }) => {
     localStorage.removeItem('user');
     setUser(null);
     handleMenuClose();
+    window.location.reload();
+  };
+
+  const handleManageAccounts = () => {
+    navigate('/manage-users');
   };
 
   const handleScroll = () => {
@@ -57,9 +94,9 @@ const Header = ({ onCategorySelect, onSearch, filter }) => {
   };
 
   useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener('scroll', handleScroll);
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, [lastScrollY]);
 
@@ -72,7 +109,7 @@ const Header = ({ onCategorySelect, onSearch, filter }) => {
         const generosUnicos = [...new Set(data.map((categoria) => categoria.genero))];
         setGeneros(generosUnicos);
       } catch (error) {
-        console.error("Error al obtener las categorías", error);
+        console.error('Error al obtener las categorías', error);
       }
     };
 
@@ -101,7 +138,7 @@ const Header = ({ onCategorySelect, onSearch, filter }) => {
   };
 
   const handleSearchIconClick = () => {
-    console.log("Buscando:", searchQuery);
+    console.log('Buscando:', searchQuery);
     onSearch(searchQuery);
     setSearchQuery('');
   };
@@ -118,12 +155,15 @@ const Header = ({ onCategorySelect, onSearch, filter }) => {
   };
 
   return (
-    <header className={`header ${isVisible ? "visible" : "hidden"}`}>
+    <header className={`header ${isVisible ? 'visible' : 'hidden'}`}>
       <div className="header-content">
         <div
           className="logo-section"
-          onClick={() => onCategorySelect(null)}
-          style={{ cursor: "pointer" }}
+          onClick={() => {
+            navigate('/');
+            onCategorySelect(null);
+          }}
+          style={{ cursor: 'pointer' }}
         >
           <img src={miuvuuLogo} alt="Miuvuu Logo" className="logo" />
           <span className="logo-text">Miuvuu</span>
@@ -197,13 +237,22 @@ const Header = ({ onCategorySelect, onSearch, filter }) => {
             <MenuItem onClick={handleMenuClose}>Mis Pedidos</MenuItem>
             <MenuItem onClick={handleLogout}>Cerrar Sesión</MenuItem>
           </Menu>
+          {user && user.isAdmin === true && (
+            <IconButton onClick={handleManageAccounts}>
+              <ManageAccountsIcon />
+            </IconButton>
+          )}
+          
+          <div className="dark-mode-toggle">
+            <IconButton onClick={toggleDarkMode}>
+              {isDarkMode ? <DarkModeIcon /> : <LightModeIcon />}
+            </IconButton>
+          </div>
+
         </div>
       </div>
-      <AuthModal
-        open={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-      />
-    </header >
+      <AuthModal open={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+    </header>
   );
 };
 

@@ -1,4 +1,3 @@
-/* Reducir el tamaño del textarea de la descripción */
 textarea {
   resize: none;
   height: 50px;
@@ -8,12 +7,10 @@ textarea {
   width: 94%;
 }
 
-/* Aplicar estilos de MUI a los inputs */
 form input {
   width: 98%;
 }
 
-/* Alinear el botón de modificar imagen con la imagen y centrarlos */
 .form-image-preview {
   display: flex;
   align-items: center;
@@ -32,21 +29,10 @@ form input {
   align-self: center;
 }
 
-/* Mostrar los botones inferiores hacia la derecha */
 .form-buttons {
   display: flex;
   justify-content: space-between;
-}
-
-/* Cambiar el color de los botones y redondearlos */
-button {
-  padding: 10px 16px;
-  background-color: #BD7B4D;
-  border: none;
-  color: white;
-  cursor: pointer;
-  border-radius: 4px;
-}
+} 
 
 button:disabled {
   background-color: #ccc;
@@ -54,7 +40,6 @@ button:disabled {
 
 form div {
   margin-bottom: 5px;
-  display: grid;
 }
 
 
@@ -73,7 +58,7 @@ body.modal-open {
   align-items: center;
 }
 
-.modal-content {
+.modal-addProduct-content {
   background: #fff;
   padding: 20px;
   border-radius: 8px;
@@ -119,7 +104,3 @@ body.modal-open {
   margin-top: 10px;
 }
 
-.img-btn {
-  gap: 10px;
-  margin-top: 6px;
-}

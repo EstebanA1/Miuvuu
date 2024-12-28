@@ -1,7 +1,7 @@
 .leftContainer,
 .centerContainer,
 .rightContainer {
-  padding: 40px 20px;
+  padding: 25px;
   background-color: #f9f9f9;
   border-radius: 8px;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
@@ -37,27 +37,10 @@
 }
 
 .product-card img {
-  max-width: 90%;
+  max-width: 100%;
   height: auto;
   border-radius: 4px;
-  margin: 8px 0;
   object-fit: cover;
-}
-
-.custom-button {
-  margin-top: 20px;
-  padding: 10px 20px;
-  font-size: 1rem;
-  background-color: #007BFF;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.custom-button:hover {
-  background-color: #0056b3;
 }
 
 .center-content {
@@ -71,7 +54,17 @@
 
 .add-product-button {
   top: 100px;
-  left: 10px;
+  left: 25px;
+  position: relative;
+  color: white;
+  background-color: #323232;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.add-product-button:hover {
+  background-color: #4a4a4a;
 }
 
 .card-actions {
@@ -84,4 +77,11 @@
 
 .hidden {
   transition: 0.6s;
+}
+
+.principalInfo{
+  display: flex;
+  align-items: center;
+  margin: 0 20px; 
+  justify-content: space-between;  
 }

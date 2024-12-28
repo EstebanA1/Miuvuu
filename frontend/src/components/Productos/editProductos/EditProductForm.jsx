@@ -4,6 +4,9 @@ import { TextField, Autocomplete } from "@mui/material";
 import ImageEditor from '../ImageEditor/ImageEditor';
 import { getCategorias } from '../../../services/categorias';
 import { editProduct } from '../../../services/productos';
+import Button from "@mui/material/Button";
+import SaveIcon from '@mui/icons-material/Save';
+import CloseIcon from '@mui/icons-material/Close';
 
 const EditProductForm = ({ product, onUpdate, onCancel }) => {
     const [productName, setProductName] = useState(product.nombre);
@@ -87,39 +90,39 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
+
         if (!productName || !productDescription || !productPrice || !productQuantity || !productCategory) {
             alert("Por favor, complete todos los campos.");
             return;
         }
-    
+
         const selectedCategory = categories.find(
             (cat) => `${cat.genero}-${cat.nombre}` === productCategory
         );
-    
+
         if (!selectedCategory) {
             alert("La categoría seleccionada no existe. Por favor, verifica.");
             return;
         }
-    
+
         const formData = new FormData();
         formData.append("nombre", productName.trim());
         formData.append("descripcion", productDescription.trim());
         formData.append("precio", Number(productPrice));
         formData.append("cantidad", Number(productQuantity));
         formData.append("categoria_id", Number(selectedCategory.id));
-    
+
         if (editedImageBlob) {
             formData.append("image", editedImageBlob);
         } else if (productImage) {
             formData.append("image", productImage);
         }
-    
+
         try {
             const response = await editProduct(product.id, formData);
             if (response) {
                 alert("Producto actualizado exitosamente.");
-                onUpdate(response);  // Llamamos a onUpdate después de una actualización exitosa
+                onUpdate(response);
             }
         } catch (error) {
             console.error("Error al actualizar el producto:", error);
@@ -133,8 +136,10 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
 
     return (
         <div className="modal">
-            <div className="modal-content">
-                <h2 className="title-form">Editar Producto</h2>
+            <div className="modal-editProduct-content">
+                <div>
+                    <h2 className="title-form">Editar Producto</h2>
+                </div>
                 <div className="modal-body add-product-body">
                     <form onSubmit={handleSubmit} encType="multipart/form-data">
                         <div>
@@ -243,13 +248,18 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                                             accept="image/png, image/jpeg, image/jpg, image/webp"
                                             style={{ display: 'none' }}
                                         />
-                                        <button
-                                            type="button"
-                                            className="select-image-btn"
+                                        <Button
+                                            variant="contained"
                                             onClick={() => fileInputRef.current?.click()}
+                                            sx={{
+                                                backgroundColor: '#1976d2',
+                                                '&:hover': {
+                                                    backgroundColor: '#1565c0'
+                                                }
+                                            }}
                                         >
                                             Seleccionar imagen
-                                        </button>
+                                        </Button>
                                     </div>
                                 </div>
                             )}
@@ -262,34 +272,58 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                                         onClick={() => setShowImageEditor(true)}
                                     />
                                     <div className="img-btn">
-                                        <button
-                                            type="button"
-                                            className="modify-image-btn"
+                                        <Button
+                                            variant="contained"
                                             onClick={() => setShowImageEditor(true)}
+                                            sx={{ mr: 1 }}
                                         >
                                             Modificar
-                                        </button>
+                                        </Button>
 
-                                        <button
-                                            type="button"
-                                            className="change-image-btn"
+                                        <Button
+                                            variant="contained"
                                             onClick={changeImage}
                                         >
                                             Cambiar
-                                        </button>
+                                        </Button>
                                     </div>
                                 </div>
                             )}
                         </div>
 
                         <div className="form-buttons">
-                            <button type="button" onClick={onCancel}>
+                            <Button
+                                variant="contained"
+                                color="error"
+                                startIcon={<CloseIcon />}
+                                onClick={onCancel}
+                                sx={{
+                                    '&:hover': {
+                                        backgroundColor: '#b71c1c', 
+                                    }
+                                }}
+                            >
                                 Cancelar
-                            </button>
-                            <button type="submit">
-                                Guardar Cambios
-                            </button>
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                color="success"
+                                endIcon={<SaveIcon />}
+                                type="submit"
+                                sx={{
+                                    color: 'success.main',
+                                    borderColor: 'success.main',
+                                    '&:hover': {
+                                        backgroundColor: 'rgba(46, 125, 50, 0.04)', 
+                                        borderColor: '#2e7d32',
+                                        color: '#2e7d32' 
+                                    }
+                                }}
+                            >
+                                Guardar
+                            </Button>
                         </div>
+
                     </form>
                 </div>
 

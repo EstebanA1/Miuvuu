@@ -13,6 +13,8 @@ const AuthModal = ({ open, onClose }) => {
     });
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [mouseDownOnOverlay, setMouseDownOnOverlay] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false); // Nuevo estado para el checkbox de admin
 
     const handleChange = (e) => {
         setFormData({
@@ -22,27 +24,40 @@ const AuthModal = ({ open, onClose }) => {
         setError('');
     };
 
-    const handleOverlayClick = (e) => {
+    const handleOverlayMouseDown = (e) => {
         if (e.target.className === 'modal-overlay') {
+            setMouseDownOnOverlay(true);
+        } else {
+            setMouseDownOnOverlay(false);
+        }
+    };
+
+    const handleOverlayMouseUp = (e) => {
+        if (e.target.className === 'modal-overlay' && mouseDownOnOverlay) {
             onClose();
         }
+        setMouseDownOnOverlay(false);
     };
 
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            await authService.login({
+            const result = await authService.login({
                 emailOrUsername: formData.emailOrUsername,
                 password: formData.password,
             });
 
-            setSuccess('¡Inicio de sesión exitoso!');
-            setTimeout(() => {
+            if (result.success) {
+                setSuccess('¡Inicio de sesión exitoso, cargando!');
+                await new Promise(resolve => setTimeout(resolve, 1500));
                 onClose();
                 window.location.reload();
-            }, 1500);
+            }
         } catch (error) {
             setError(error.message || 'Error al iniciar sesión');
+            setTimeout(() => {
+                setError('');
+            }, 3000);
         }
     };
 
@@ -61,7 +76,7 @@ const AuthModal = ({ open, onClose }) => {
                 nombre: formData.nombre,
             });
 
-            setSuccess('¡Registro exitoso! Ya puedes iniciar sesión');
+            setSuccess('¡Registro exitoso!');
             setTimeout(() => {
                 setIsActive(false);
                 setFormData({
@@ -71,7 +86,9 @@ const AuthModal = ({ open, onClose }) => {
                     nombre: '',
                     email: '',
                 });
-            }, 1500);
+                window.location.reload();
+            }, 2000);
+
         } catch (error) {
             if (error.detail && error.detail.includes('usuarios_correo_key')) {
                 setError('Este correo electrónico ya está registrado, utilizar otro.');
@@ -81,8 +98,12 @@ const AuthModal = ({ open, onClose }) => {
         }
     };
 
-    return (
-        <div className="modal-overlay" onClick={handleOverlayClick}>
+    return open ? (
+        <div
+            className="modal-overlay"
+            onMouseDown={handleOverlayMouseDown}
+            onMouseUp={handleOverlayMouseUp}
+        >
             <div className={`container ${isActive ? 'active' : ''}`}>
                 <div className="form-container sign-up">
                     <form onSubmit={handleRegister}>
@@ -188,7 +209,7 @@ const AuthModal = ({ open, onClose }) => {
 
             </div>
         </div>
-    );
+    ) : null;
 };
 
 export default AuthModal;

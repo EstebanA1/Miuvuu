@@ -1,36 +1,38 @@
+// DeleteUserModal.jsx
 import React from "react";
 import Button from "@mui/material/Button";
 import DeleteIcon from "@mui/icons-material/Delete";
-import "./DeleteProductForm.css";
-import { deleteProduct } from "../../../services/productos";
 import CloseIcon from "@mui/icons-material/Close";
+import { userService } from "../../../services/authService";
+import "./DeleteUserModal.css";
 
-const DeleteProductForm = ({ productName, productId, onCancel, onProductDeleted }) => {
+const DeleteUserModal = ({ user, onClose, onDelete }) => {
     const handleDelete = async () => {
         try {
-            await deleteProduct(productId);
-            alert(`Producto ${productName} eliminado exitosamente`);
-            onProductDeleted();
+            await userService.deleteUser(user.id);
+            alert(`Usuario ${user.nombre} eliminado exitosamente`);
+            onDelete();
+            onClose();
         } catch (error) {
-            const errorMessage = error.detail || error.message || "Error desconocido al eliminar el producto";
+            const errorMessage = error.detail || error.message || "Error desconocido al eliminar el usuario";
             alert(`Error: ${errorMessage}`);
             console.error("Error detallado:", error);
         }
     };
 
     return (
-        <div className="delete-product-overlay">
-            <div className="delete-product-modal">
-                <h2>¿Seguro que quieres eliminar el producto?</h2>
+        <div className="delete-user-overlay">
+            <div className="delete-user-modal">
+                <h2>¿Seguro que quieres eliminar el usuario?</h2>
                 <p>
-                    El producto <strong>{productName}</strong> será eliminado
+                    El usuario <strong>{user.nombre}</strong> será eliminado
                     permanentemente.
                 </p>
-                <div className="delete-product-buttons">
+                <div className="delete-user-buttons">
                     <Button 
                         variant="outlined" 
                         startIcon={<CloseIcon />}
-                        onClick={onCancel}
+                        onClick={onClose}
                         sx={{ 
                             mr: 2,
                             '&:hover': {
@@ -61,4 +63,4 @@ const DeleteProductForm = ({ productName, productId, onCancel, onProductDeleted 
     );
 };
 
-export default DeleteProductForm;
+export default DeleteUserModal;

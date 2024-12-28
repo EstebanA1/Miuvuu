@@ -3,7 +3,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import ImageEditor from '../ImageEditor/ImageEditor';
 import { addProduct } from '../../../services/productos';
 import { getCategorias } from '../../../services/categorias';
-import { Autocomplete, TextField } from '@mui/material';
+import { Autocomplete, TextField, Button } from '@mui/material';
+import SaveIcon from '@mui/icons-material/Save';
+import CloseIcon from '@mui/icons-material/Close';
 
 const AddProductForm = ({ closeModal }) => {
   const [productName, setProductName] = useState("");
@@ -87,7 +89,7 @@ const AddProductForm = ({ closeModal }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (
       !productName ||
       !productDescription ||
@@ -99,16 +101,16 @@ const AddProductForm = ({ closeModal }) => {
       alert("Por favor, complete todos los campos.");
       return;
     }
-  
+
     const selectedCategory = categories.find(
       (cat) => `${cat.genero}-${cat.nombre}` === productCategory
     );
-  
+
     if (!selectedCategory) {
       alert("La categoría seleccionada no existe. Por favor, verifica.");
       return;
     }
-  
+
     const productData = {
       nombre: productName,
       descripcion: productDescription,
@@ -117,13 +119,13 @@ const AddProductForm = ({ closeModal }) => {
       categoria_id: selectedCategory.id,
       image_url: productImage,
     };
-    
+
     console.log("Datos del producto:", productData);
 
     try {
-      const response = await addProduct(productData); 
+      const response = await addProduct(productData);
       console.log("Respuesta del servidor:", response);
-  
+
       if (response.image_url) {
         alert("Producto creado exitosamente.");
         resetForm();
@@ -136,11 +138,11 @@ const AddProductForm = ({ closeModal }) => {
       alert("Hubo un error al agregar el producto.");
     }
   };
-  
+
 
   return (
     <div className="modal">
-      <div className="modal-content">
+      <div className="modal-addProduct-content">
         <h2 className='title-form'>Agregar Producto</h2>
 
         <div className="modal-body add-product-body">
@@ -251,13 +253,12 @@ const AddProductForm = ({ closeModal }) => {
                       accept="image/png, image/jpeg, image/jpg, image/webp"
                       style={{ display: 'none' }}
                     />
-                    <button
-                      type="button"
-                      className="select-image-btn"
+                    <Button
+                      variant="contained"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       Seleccionar imagen
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -270,52 +271,85 @@ const AddProductForm = ({ closeModal }) => {
                     onClick={() => setShowImageEditor(true)}
                   />
                   <div className="img-btn">
-                    <button
-                      type="button"
-                      className="modify-image-btn"
+                    <Button
+                      variant="contained"
                       onClick={() => setShowImageEditor(true)}
+                      sx={{
+                        backgroundColor: '#BD7B4D',
+                        marginRight: 1,
+                        '&:hover': {
+                          backgroundColor: '#a66b43'
+                        }
+                      }}
                     >
                       Modificar
-                    </button>
+                    </Button>
 
-                    <button
-                      type="button"
-                      className="change-image-btn"
+                    <Button
+                      variant="contained"
                       onClick={changeImage}
+                      sx={{
+                        backgroundColor: '#BD7B4D',
+                        '&:hover': {
+                          backgroundColor: '#a66b43'
+                        }
+                      }}
                     >
                       Cambiar
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
-
-
             </div>
 
             <div className="form-buttons">
-              <button type="button" onClick={closeModal}>
-                Cerrar
-              </button>
-              <button type="submit">Subir Producto</button>
+              <Button
+                variant="contained"
+                color="error"
+                onClick={closeModal}
+                startIcon={<CloseIcon />}
+                sx={{
+                  '&:hover': {
+                    backgroundColor: '#b71c1c',
+                  }
+                }}
+              >
+                Cancelar
+              </Button>
+
+              <Button
+                variant="outlined"
+                type="submit"
+                endIcon={<SaveIcon />}
+                sx={{
+                  color: 'success.main',
+                  borderColor: 'success.main',
+                  '&:hover': {
+                    backgroundColor: 'rgba(46, 125, 50, 0.04)',
+                    borderColor: '#2e7d32',
+                    color: '#2e7d32'
+                  }
+                }}
+              >
+                Subir Producto
+              </Button>
             </div>
           </form>
-        </div >
+        </div>
 
-        {
-          showImageEditor && (
-            <ImageEditor
-              image={editedImageBlob || productImage}
-              setImage={(file) => {
-                setEditedImageBlob(file);
-                setProductImage(file);
-              }}
-              setImageEdited={true}
-              onClose={() => setShowImageEditor(false)}
-            />
-          )
-        }
-      </div >
-    </div >
+        {showImageEditor && (
+          <ImageEditor
+            image={editedImageBlob || productImage}
+            setImage={(file) => {
+              setEditedImageBlob(file);
+              setProductImage(file);
+            }}
+            setImageEdited={true}
+            onClose={() => setShowImageEditor(false)}
+          />
+        )}
+      </div>
+    </div>
   );
 };
 
