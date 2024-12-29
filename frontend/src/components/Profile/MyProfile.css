@@ -1,0 +1,62 @@
+.containerProfile {
+    max-width: 500px;
+    margin: 100px auto 30px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
+}
+
+.MuiTextField-root,
+.MuiSelect-root,
+.input-field {
+    width: 100% !important;
+    margin-bottom: 20px !important;
+}
+
+.MuiSelect-select {
+    width: 100% !important;
+}
+
+.space-y-4>* {
+    margin-bottom: 16px;
+}
+
+.MuiDialog-paper {
+    width: 95% !important;
+    max-width: 500px !important;
+    margin: 16px !important;
+}
+
+.MuiDialogContent-root {
+    padding: 20px !important;
+}
+
+.MuiDialogActions-root {
+    padding: 16px !important;
+}
+
+.input-field {
+    min-width: 200px;
+    width: 100% !important;
+}
+
+.MuiPaper-root.MuiPaper-elevation.MuiPaper-rounded.MuiPaper-elevation1 {
+    box-shadow: none !important;
+}
+
+.changePwBTS {
+    display: flex;
+    justify-content: space-around;
+}
+
+.cancelAndSaveChangesUserBTNS {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+h2 {
+    display: flex;
+    justify-content: center;
+    margin: auto auto 30px;
+}

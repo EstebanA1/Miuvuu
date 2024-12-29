@@ -5,6 +5,7 @@ import Header from "./components/Header/Header";
 import Footer from "./components/Footer/Footer";
 import Content from "./components/Content/Content";
 import ManageUsersPage from "./components/ManageUser/Page/ManageUsersPage";
+import MyProfile from "./components/Profile/myProfile";
 
 const App = () => {
   const [filter, setFilter] = useState({ category: null, gender: null, searchQuery: "" });
@@ -28,6 +29,7 @@ const App = () => {
             filter={filter} />
           } />
           <Route path="/manage-users" element={<ManageUsersPage />} />
+          <Route path="/profile" element={<MyProfile />} />
         </Routes>
         <Footer />
       </Router>

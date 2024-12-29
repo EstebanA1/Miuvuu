@@ -67,10 +67,14 @@ const Content = ({ leftVisible, rightVisible, filter, children }) => {
   };
 
   const handleCloseModal = (type) => {
-    setModalState((prevState) => ({ ...prevState, [type]: false }));
-    if (type === "edit") setProductToEdit(null);
-    if (type === "delete") setSelectedProduct(null);
-  };
+    try {
+        setModalState((prevState) => ({ ...prevState, [type]: false }));
+        if (type === "edit") setProductToEdit(null);
+        if (type === "delete") setSelectedProduct(null);
+    } catch (error) {
+        console.debug('Error al cerrar el modal:', error);
+    }
+};
 
   const handleProductDeleted = () => {
     fetchProductos();
@@ -85,13 +89,14 @@ const Content = ({ leftVisible, rightVisible, filter, children }) => {
   return (
     <div className="content-container">
       {hasAdminPrivileges() && (
-        <buttom
-          startIcon={<AddIcon />}
+        <Button
+          variant="contained"
+          color="primary"
           onClick={() => handleOpenModal("add")}
           className="add-product-button"
         >
           Añadir Producto
-        </buttom>
+        </Button>
       )}
 
       {modalState.add && (

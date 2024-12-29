@@ -2,7 +2,7 @@ import "./Header.css";
 import { IconButton, Switch } from '@mui/material';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
-import miuvuuLogo from "@assets/miuvuuLogo2.webp";
+import miuvuuLogo from "@assets/miuvuuIcon.svg";
 import SearchIcon from '@mui/icons-material/Search';
 import { getCategorias } from "../../services/categorias";
 import React, { useEffect, useState, useRef } from "react";
@@ -22,12 +22,13 @@ const Header = ({ onCategorySelect, onSearch, filter }) => {
   const [hoveredGenero, setHoveredGenero] = useState(null);
   const [hideTimeout, setHideTimeout] = useState(null);
   const [searchQuery, setSearchQuery] = useState(filter.searchQuery);
-  const [isDarkMode, setIsDarkMode] = useState(false); // Estado para el modo oscuro
-  const inputRef = useRef(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const inputRef = useRef(null);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     const storedTheme = localStorage.getItem("theme");
@@ -50,17 +51,20 @@ const Header = ({ onCategorySelect, onSearch, filter }) => {
   };
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        parsedUser.isAdmin = parsedUser.rol === 'admin';
-        setUser(parsedUser);
-        console.log('Usuario cargado:', parsedUser);
-      } catch (error) {
-        console.error('Error al parsear usuario:', error);
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+          try {
+              const parsedUser = JSON.parse(storedUser);
+              parsedUser.isAdmin = parsedUser.rol === 'admin';
+              setUser(parsedUser);
+              if (isFirstRender.current) {
+                  console.log('Inicio exitoso!');
+                  isFirstRender.current = false;
+              }
+          } catch (error) {
+              console.error('Error al parsear usuario:', error);
+          }
       }
-    }
   }, []);
 
   const handleAccountClick = (event) => {
@@ -155,15 +159,15 @@ const Header = ({ onCategorySelect, onSearch, filter }) => {
   };
 
   return (
-    <header className={`header ${isVisible ? 'visible' : 'hidden'}`}>
+    <header className={`header ${isDarkMode ? 'dark-mode' : ''} ${isVisible ? 'visible' : 'hidden'}`}>
       <div className="header-content">
         <div
           className="logo-section"
           onClick={() => {
-            navigate('/');
+            navigate("/");
             onCategorySelect(null);
           }}
-          style={{ cursor: 'pointer' }}
+          style={{ cursor: "pointer" }}
         >
           <img src={miuvuuLogo} alt="Miuvuu Logo" className="logo" />
           <span className="logo-text">Miuvuu</span>
@@ -233,7 +237,10 @@ const Header = ({ onCategorySelect, onSearch, filter }) => {
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
           >
-            <MenuItem onClick={handleMenuClose}>Mi Perfil</MenuItem>
+            <MenuItem onClick={() => {
+              navigate('/profile');
+              handleMenuClose();
+            }}>Mi Perfil</MenuItem>
             <MenuItem onClick={handleMenuClose}>Mis Pedidos</MenuItem>
             <MenuItem onClick={handleLogout}>Cerrar Sesión</MenuItem>
           </Menu>
@@ -242,7 +249,7 @@ const Header = ({ onCategorySelect, onSearch, filter }) => {
               <ManageAccountsIcon />
             </IconButton>
           )}
-          
+
           <div className="dark-mode-toggle">
             <IconButton onClick={toggleDarkMode}>
               {isDarkMode ? <DarkModeIcon /> : <LightModeIcon />}

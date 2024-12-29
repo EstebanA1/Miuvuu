@@ -187,7 +187,7 @@ export const userService = {
 
     getUser: async (id) => {
         try {
-            const response = await axios.get(`${USERS_API}/${id}`);
+            const response = await axios.get(`${USERS_API}${id}`);
             const processedUser = {
                 ...response.data,
                 metodo_pago: response.data.metodo_pago || [],

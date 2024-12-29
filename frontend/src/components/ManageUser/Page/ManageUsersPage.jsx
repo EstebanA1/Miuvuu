@@ -42,7 +42,7 @@ const ManageUsersPage = () => {
 
     return (
         <div>
-            <h1>Gestión de Usuarios</h1>
+            <h2 className="GU">Gestión de Usuarios</h2>
             <div className="contentManageUsers">
 
                 <div >
