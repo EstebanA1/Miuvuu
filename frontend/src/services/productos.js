@@ -1,17 +1,40 @@
 import axios from "axios";
 
 const API_URL = "http://127.0.0.1:8000/api/productos/";
-const API_IMG = "http://127.0.0.1:8000";
+const API_BASE_URL = "http://127.0.0.1:8000";
+
+const formatImageUrl = (imageUrl) => {
+  if (!imageUrl) return null;
+  if (imageUrl.startsWith('http')) return imageUrl;
+  return `${API_BASE_URL}/${imageUrl.startsWith('/') ? imageUrl.slice(1) : imageUrl}`;
+};
+
+const formatProductData = (product) => {
+  return {
+    ...product,
+    image_url: formatImageUrl(product.image_url)
+  };
+};
 
 export const getProductos = async (query = "") => {
   try {
     const response = await axios.get(`${API_URL}${query}`);
     return response.data.map((producto) => ({
       ...producto,
-      image_url: producto.image_url ? `${API_IMG}${producto.image_url}` : null,
+      image_url: producto.image_url ? `${API_BASE_URL}${producto.image_url}` : null,
     }));
   } catch (error) {
     console.error("Error al obtener los productos:", error);
+    throw error;
+  }
+};
+
+export const getProductoById = async (id) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/api/productos/${id}`);
+    return formatProductData(response.data);
+  } catch (error) {
+    console.error('Error al obtener el producto:', error);
     throw error;
   }
 };
@@ -61,7 +84,7 @@ export const editProduct = async (id, formData) => {
 
     const data = response.data;
     if (data.image_url) {
-      data.image_url = `${API_IMG}${data.image_url}`;
+      data.image_url = `${API_BASE_URL}${data.image_url}`;
     }
 
     return data;

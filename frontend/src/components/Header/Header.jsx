@@ -12,9 +12,10 @@ import AuthModal from '../Auth/AuthModal';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useNavigate } from 'react-router-dom';
 
-const Header = ({ onCategorySelect, onSearch, filter }) => {
+const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [categorias, setCategorias] = useState([]);
@@ -51,20 +52,20 @@ const Header = ({ onCategorySelect, onSearch, filter }) => {
   };
 
   useEffect(() => {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-          try {
-              const parsedUser = JSON.parse(storedUser);
-              parsedUser.isAdmin = parsedUser.rol === 'admin';
-              setUser(parsedUser);
-              if (isFirstRender.current) {
-                  console.log('Inicio exitoso!');
-                  isFirstRender.current = false;
-              }
-          } catch (error) {
-              console.error('Error al parsear usuario:', error);
-          }
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        parsedUser.isAdmin = parsedUser.rol === 'admin';
+        setUser(parsedUser);
+        if (isFirstRender.current) {
+          console.log('Inicio exitoso!');
+          isFirstRender.current = false;
+        }
+      } catch (error) {
+        console.error('Error al parsear usuario:', error);
       }
+    }
   }, []);
 
   const handleAccountClick = (event) => {
@@ -163,9 +164,9 @@ const Header = ({ onCategorySelect, onSearch, filter }) => {
       <div className="header-content">
         <div
           className="logo-section"
-          onClick={() => {
-            navigate("/");
-            onCategorySelect(null);
+          onClick={(e) => {
+            e.preventDefault();
+            onHomeClick();
           }}
           style={{ cursor: "pointer" }}
         >
@@ -173,44 +174,48 @@ const Header = ({ onCategorySelect, onSearch, filter }) => {
           <span className="logo-text">Miuvuu</span>
         </div>
 
-        <div className="header-selecters">
-          <nav className="categories">
-            <ul>
-              {generos.map((genero) => (
-                <li
-                  key={genero}
-                  onMouseEnter={() => handleMouseEnter(genero)}
-                  onMouseLeave={handleMouseLeave}
-                  onClick={() => handleGeneroClick(genero)}
-                  className="category-item"
-                >
-                  {genero}
-                </li>
-              ))}
-            </ul>
-            {hoveredGenero && (
-              <div
-                className="subcategories"
-                onMouseEnter={() => handleMouseEnter(hoveredGenero)}
-                onMouseLeave={handleMouseLeave}
+        <div 
+  className={`header-selecters ${user ? (user.isAdmin ? 'admin' : 'logged-in') : 'logged-out'}`}
+>
+  <nav className="categories">
+    <ul>
+      {generos.map((genero) => (
+        <li
+          key={genero}
+          onMouseEnter={() => handleMouseEnter(genero)}
+          onMouseLeave={handleMouseLeave}
+          onClick={() => handleGeneroClick(genero)}
+          className="category-item"
+        >
+          {genero}
+        </li>
+      ))}
+    </ul>
+    {hoveredGenero && (
+      <div
+        className="subcategories"
+        onMouseEnter={() => handleMouseEnter(hoveredGenero)}
+        onMouseLeave={handleMouseLeave}
+      >
+        <ul>
+          {categorias
+            .filter((categoria) => categoria.genero === hoveredGenero)
+            .map((categoria) => (
+              <li
+                key={categoria.id}
+                onClick={() => onCategorySelect(categoria.nombre, hoveredGenero)}
+                className="subcategory-item"
               >
-                <ul>
-                  {categorias
-                    .filter((categoria) => categoria.genero === hoveredGenero)
-                    .map((categoria) => (
-                      <li
-                        key={categoria.id}
-                        onClick={() => onCategorySelect(categoria.nombre, hoveredGenero)}
-                        className="subcategory-item"
-                      >
-                        {categoria.nombre}
-                      </li>
-                    ))}
-                </ul>
-              </div>
-            )}
-          </nav>
-        </div>
+                {categoria.nombre}
+              </li>
+            ))}
+        </ul>
+      </div>
+    )}
+  </nav>
+</div>
+
+        
 
         <div className="header-icons">
           <div className="search-container">
@@ -225,13 +230,24 @@ const Header = ({ onCategorySelect, onSearch, filter }) => {
               <SearchIcon />
             </IconButton>
           </div>
-          <IconButton>
-            <ShoppingCartIcon />
-          </IconButton>
+          {user && (
+            <>
+              <IconButton onClick={() => navigate('/favoritos')}>
+                <FavoriteIcon />
+              </IconButton>
+              <IconButton>
+                <ShoppingCartIcon />
+              </IconButton>
+            </>
+          )}
+          <div className="dark-mode-toggle">
+            <IconButton onClick={toggleDarkMode}>
+              {isDarkMode ? <DarkModeIcon /> : <LightModeIcon />}
+            </IconButton>
+          </div>
           <IconButton onClick={handleAccountClick}>
             <AccountCircleIcon />
           </IconButton>
-
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
@@ -249,12 +265,6 @@ const Header = ({ onCategorySelect, onSearch, filter }) => {
               <ManageAccountsIcon />
             </IconButton>
           )}
-
-          <div className="dark-mode-toggle">
-            <IconButton onClick={toggleDarkMode}>
-              {isDarkMode ? <DarkModeIcon /> : <LightModeIcon />}
-            </IconButton>
-          </div>
 
         </div>
       </div>

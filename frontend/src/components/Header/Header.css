@@ -18,9 +18,9 @@
 
 .header-content {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-evenly;
   align-items: center;
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 10px 20px;
 }
@@ -28,7 +28,6 @@
 .logo-section {
   display: flex;
   align-items: center;
-  margin-right: 155px;
 }
 
 .logo {
@@ -53,24 +52,24 @@
   background-color: rgba(255, 255, 255, 0.1);
   position: relative;
   border-radius: 4px;
-  padding: 0 8px;
-  width: 200px; 
+  padding: 0 6px;
+  width: 200px;
   transition: all 0.3s ease-in-out;
-  gap: 8px; 
+  gap: 8px;
 }
 
 .search-container input {
-  width: 100%; 
+  width: 100%;
   padding: 5px 8px;
   border-radius: 4px;
   background-color: rgba(69, 69, 69, 0.08);
-  border: 1px solid transparent; 
+  border: 1px solid transparent;
   transition: opacity 0.3s ease, border-color 0.3s ease;
 }
 
 .search-container input:focus {
-  outline: none; 
-  border-color: rgba(255, 255, 255, 0.3); 
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .search-container input.visible {
@@ -88,12 +87,13 @@
 .logo {
   height: 40px;
   padding: 5px;
-  filter: brightness(0) saturate(100%) invert(0%) sepia(0%) saturate(0%) hue-rotate(234deg) brightness(19%) contrast(104%); /* Color oscuro para modo claro */
+  filter: brightness(0) saturate(100%) invert(0%) sepia(0%) saturate(0%) hue-rotate(234deg) brightness(19%) contrast(104%);
+  /* Color oscuro para modo claro */
   transition: filter 0.3s ease;
 }
 
 body.dark-mode .logo {
-  filter: brightness(12.07%) saturate(100.07%) invert(98.91%) sepia(14.81%) contrast(80.12%); 
+  filter: brightness(12.07%) saturate(100.07%) invert(98.91%) sepia(14.81%) contrast(80.12%);
 }
 
 .categories ul {
@@ -155,4 +155,20 @@ body.dark-mode .categories li {
 
 body.dark-mode .subcategories {
   background-color: #151515;
+}
+
+.header-selecters {
+  display: flex;
+}
+
+.header-selecters.logged-in {
+  margin-left: 300px;
+}
+
+.header-selecters.logged-out {
+  margin-left: 190px;
+}
+
+.header-selecters.admin {
+  margin-left: 340px;
 }

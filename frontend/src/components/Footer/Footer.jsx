@@ -16,15 +16,6 @@ const Footer = () => {
         </div>
 
         <div className="footer-section">
-          <h4>Categorías</h4>
-          <ul>
-            <li><a href="/category/1">Ropa</a></li>
-            <li><a href="/category/2">Electrónica</a></li>
-            <li><a href="/category/3">Accesorios</a></li>
-          </ul>
-        </div>
-
-        <div className="footer-section">
           <h4>Síguenos</h4>
           <div className="social-icons">
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">🌐 Facebook</a>

@@ -1,7 +1,5 @@
 import "./Content.css";
-import Carousel from "../Carousel/Carousel";
 import { Button, IconButton } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddProductForm from "../Productos/addProductos/AddProductForm";
@@ -9,10 +7,12 @@ import EditProductForm from "../Productos/editProductos/EditProductForm";
 import DeleteProductForm from "../Productos/deleteProductos/DeleteProductForm";
 import { getProductos } from "../../services/productos";
 import { authService } from "../../services/authService";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import { useFavorites } from '../../context/FavoritesContext';
 
-const Content = ({ leftVisible, rightVisible, filter, children }) => {
-  const [productos, setProductos] = useState([]);
+const Content = ({ filter }) => {
   const [modalState, setModalState] = useState({
     add: false,
     edit: false,
@@ -21,17 +21,17 @@ const Content = ({ leftVisible, rightVisible, filter, children }) => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productToEdit, setProductToEdit] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate();
+  const [productos, setProductos] = useState([]);
+  const { favorites, toggleFavorite } = useFavorites();
+  const [user, setUser] = useState(null);
 
-  const hasAdminPrivileges = () => {
-    const user = authService.getCurrentUser();
-    return user && (user.rol === 'admin' || user.rol === 'vendedor');
-  };
-  const fetchProductos = async () => {
+  const fetchProductos = async (filterParams = filter) => {
     try {
       const query = [];
-      if (filter.category) query.push(`categoria=${encodeURIComponent(filter.category)}`);
-      if (filter.gender) query.push(`genero=${encodeURIComponent(filter.gender)}`);
-      if (filter.searchQuery) query.push(`searchQuery=${encodeURIComponent(filter.searchQuery)}`);
+      if (filterParams.category) query.push(`categoria=${encodeURIComponent(filterParams.category)}`);
+      if (filterParams.gender) query.push(`genero=${encodeURIComponent(filterParams.gender)}`);
+      if (filterParams.searchQuery) query.push(`searchQuery=${encodeURIComponent(filterParams.searchQuery)}`);
 
       const queryString = query.length > 0 ? `?${query.join("&")}` : "";
       const data = await getProductos(queryString);
@@ -42,8 +42,33 @@ const Content = ({ leftVisible, rightVisible, filter, children }) => {
   };
 
   useEffect(() => {
-    fetchProductos();
+    if (!window.isFilterUpdateInProgress) {
+      fetchProductos();
+    }
+    window.isFilterUpdateInProgress = false;
   }, [filter]);
+
+  useEffect(() => {
+    const handleFilterUpdate = (event) => {
+      const newFilter = event.detail;
+      fetchProductos(newFilter);
+    };
+
+    window.addEventListener('filterUpdate', handleFilterUpdate);
+    return () => window.removeEventListener('filterUpdate', handleFilterUpdate);
+  }, []); //filter 2
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []); //user
+
+  const hasAdminPrivileges = () => {
+    const user = authService.getCurrentUser();
+    return user && (user.rol === 'admin' || user.rol === 'vendedor');
+  };
 
   useEffect(() => {
     const checkUserRole = () => {
@@ -52,12 +77,11 @@ const Content = ({ leftVisible, rightVisible, filter, children }) => {
         setIsAdmin(true);
       }
     };
-
     checkUserRole();
   }, []);
 
   const handleOpenModal = (type, product = null) => {
-    if (!hasAdminPrivileges) {
+    if (!hasAdminPrivileges()) {
       console.warn("Acceso no autorizado");
       return;
     }
@@ -68,22 +92,26 @@ const Content = ({ leftVisible, rightVisible, filter, children }) => {
 
   const handleCloseModal = (type) => {
     try {
-        setModalState((prevState) => ({ ...prevState, [type]: false }));
-        if (type === "edit") setProductToEdit(null);
-        if (type === "delete") setSelectedProduct(null);
+      setModalState((prevState) => ({ ...prevState, [type]: false }));
+      if (type === "edit") setProductToEdit(null);
+      if (type === "delete") setSelectedProduct(null);
     } catch (error) {
-        console.debug('Error al cerrar el modal:', error);
+      console.debug('Error al cerrar el modal:', error);
     }
-};
+  };
 
   const handleProductDeleted = () => {
     fetchProductos();
     handleCloseModal("delete");
   };
 
-  const handleUpdateProduct = async (updatedProduct) => {
+  const handleUpdateProduct = async () => {
     await fetchProductos();
     handleCloseModal("edit");
+  };
+
+  const handleProductClick = (producto) => {
+    navigate(`/producto/${producto.id}`);
   };
 
   return (
@@ -110,25 +138,40 @@ const Content = ({ leftVisible, rightVisible, filter, children }) => {
         </div>
       )}
 
-      <div className={`leftContainer ${leftVisible ? "" : "hidden"}`} />
-
       <div className="centerContainer">
         <div className="center-content">
           <h2>
             {filter.category ? `${filter.category} de ${filter.gender}` : filter.gender ? `Prendas de ${filter.gender}` : ""}
           </h2>
+
           <div className="product-list">
             {productos.map((producto) => (
-              <div key={producto.id} className="product-card">
+              <div
+                key={producto.id}
+                className="product-card"
+                onClick={() => handleProductClick(producto)}
+                style={{ cursor: 'pointer' }}
+              >
                 {producto.image_url && <img src={producto.image_url} alt={producto.nombre} />}
                 <div className="principalInfo">
                   <h3>{producto.nombre}</h3>
                   <p>${producto.precio}</p>
                 </div>
+                {user && (
+                  <IconButton
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(producto);
+                    }}
+                    sx={{ color: favorites.some(f => f.id === producto.id) ? 'red' : 'gray' }}
+                  >
+                    <FavoriteIcon />
+                  </IconButton>
+                )}
                 {hasAdminPrivileges() && (
-                  <div className="card-actions">
+                  <div className="card-actions" onClick={(e) => e.stopPropagation()}>
                     <IconButton
-                      sx={{ color: 'rgb(17 96 174);' }}
+                      sx={{ color: 'rgb(17 96 174)' }}
                       onClick={() => handleOpenModal("edit", producto)}
                     >
                       <EditIcon />
@@ -146,8 +189,6 @@ const Content = ({ leftVisible, rightVisible, filter, children }) => {
           </div>
         </div>
       </div>
-
-      <div className={`rightContainer ${rightVisible ? "" : "hidden"}`} />
 
       {modalState.edit && productToEdit && (
         <EditProductForm
