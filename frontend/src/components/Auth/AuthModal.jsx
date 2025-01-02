@@ -14,7 +14,6 @@ const AuthModal = ({ open, onClose }) => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [mouseDownOnOverlay, setMouseDownOnOverlay] = useState(false);
-    const [isAdmin, setIsAdmin] = useState(false); // Nuevo estado para el checkbox de admin
 
     const handleChange = (e) => {
         setFormData({
@@ -109,10 +108,20 @@ const AuthModal = ({ open, onClose }) => {
                     <form onSubmit={handleRegister}>
                         <h1>Crear Cuenta</h1>
                         <div className="social-icons">
-                            <button type="button" className="google-button">
+
+
+                            <button
+                                type="button"
+                                className="google-button"
+                                onClick={() => {
+                                    console.log('Botón de Google clickeado');
+                                    window.location.href = "http://127.0.0.1:8000/api/auth/google/login";
+                                }}
+                            >
                                 <img src="/google.svg" alt="Google Icon" className="google-icon" />
                                 Continuar con Google
                             </button>
+
                         </div>
                         <span>o usa tu email para registrarte</span>
                         {error && <div className="error-message">{error}</div>}
@@ -161,7 +170,14 @@ const AuthModal = ({ open, onClose }) => {
                     <form onSubmit={handleLogin}>
                         <h1>Iniciar Sesión</h1>
                         <div className="social-icons">
-                            <button type="button" className="google-button">
+                            <button
+                                type="button"
+                                className="google-button"
+                                onClick={() => {
+                                    console.log('Botón de Google clickeado');
+                                    window.location.href = "http://127.0.0.1:8000/api/auth/google/login";
+                                }}
+                            >
                                 <img src="/google.svg" alt="Google Icon" className="google-icon" />
                                 Continuar con Google
                             </button>

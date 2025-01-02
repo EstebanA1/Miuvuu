@@ -142,6 +142,45 @@ export const authService = {
             console.error('Error al verificar autenticación:', error);
             return false;
         }
+    },
+
+    handleGoogleCallback: () => {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            const userStr = params.get('user');
+            const error = params.get('error');
+
+            if (error) {
+                console.error('Error en la autenticación de Google:', error);
+                return { success: false, error };
+            }
+
+            if (!token || !userStr) {
+                console.error('Faltan datos necesarios en la respuesta');
+                return { success: false, error: 'Datos de autenticación incompletos' };
+            }
+
+            try {
+                const user = JSON.parse(decodeURIComponent(userStr));
+                localStorage.setItem('token', token);
+                localStorage.setItem('user', JSON.stringify(user));
+                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+                // Disparar evento de login exitoso
+                window.dispatchEvent(new CustomEvent('googleLoginSuccess', {
+                    detail: { user, token }
+                }));
+
+                return { success: true, user };
+            } catch (parseError) {
+                console.error('Error al procesar datos del usuario:', parseError);
+                return { success: false, error: 'Error al procesar datos del usuario' };
+            }
+        } catch (error) {
+            console.error('Error en handleGoogleCallback:', error);
+            return { success: false, error: 'Error procesando la respuesta de autenticación' };
+        }
     }
 };
 
@@ -175,8 +214,8 @@ export const userService = {
             const response = await axios.get(USERS_API);
             const processedUsers = response.data.map(user => ({
                 ...user,
-                metodo_pago: user.metodo_pago || [], 
-                rol: user.rol || 'usuario' 
+                metodo_pago: user.metodo_pago || [],
+                rol: user.rol || 'usuario'
             }));
             return processedUsers;
         } catch (error) {
@@ -218,7 +257,7 @@ export const userService = {
             const processedData = {
                 nombre: userData.nombre,
                 correo: userData.correo,
-                contraseña: userData.contraseña, 
+                contraseña: userData.contraseña,
                 rol: userData.rol || 'usuario',
                 metodo_pago: userData.metodo_pago || []
             };
@@ -236,5 +275,29 @@ export const userService = {
         } catch (error) {
             throw error.response?.data || error;
         }
+    }
+};
+
+const handleGoogleLogin = async (googleResponse) => {
+    const token = googleResponse.credential;
+
+    try {
+        const response = await fetch("http://tu-backend.com/api/auth/google", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Guardar token y usuario
+            localStorage.setItem("token", data.access_token);
+            localStorage.setItem("user", JSON.stringify(data.user));
+        } else {
+            console.error("Error al autenticar con Google:", data.detail);
+        }
+    } catch (error) {
+        console.error("Error en la solicitud de autenticación:", error);
     }
 };

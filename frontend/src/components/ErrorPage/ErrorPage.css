@@ -1,0 +1,9 @@
+.error-page {
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa;
+    color: #343a40;
+    flex-direction: column;
+    margin-top: auto;
+    padding-bottom: 2rem;
+}

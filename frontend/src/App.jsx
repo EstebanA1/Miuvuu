@@ -9,6 +9,8 @@ import MyProfile from "./components/Profile/myProfile";
 import ProductDetail from "./components/Productos/DetailsProduct/DetailsProduct";
 import FavoritesPage from './components/Favorites/FavoritePage';
 import { FavoritesProvider } from './context/FavoritesContext';
+import AuthCallback from './components/Auth/AuthCallback';
+import ErrorPage from './components/Errorpage/ErrorPage';
 
 const MainContent = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -65,6 +67,8 @@ const MainContent = () => {
         <Route path="/manage-users" element={<ManageUsersPage />} />
         <Route path="/favoritos" element={<FavoritesPage />} />
         <Route path="/profile" element={<MyProfile />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/auth/error" element={<ErrorPage />} />
       </Routes>
       <Footer />
     </>

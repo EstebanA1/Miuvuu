@@ -39,6 +39,64 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
     }
   }, []);
 
+  useEffect(() => {
+    const handleUserLogin = (event) => {
+        const userData = event.detail;
+        if (userData) {
+            setUser({
+                ...userData,
+                isAdmin: userData.rol === 'admin'
+            });
+            setAuthModalOpen(false);
+        }
+    };
+
+    window.addEventListener('userLogin', handleUserLogin);
+
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+        try {
+            const parsedUser = JSON.parse(storedUser);
+            setUser({
+                ...parsedUser,
+                isAdmin: parsedUser.rol === 'admin'
+            });
+        } catch (error) {
+            console.error('Error parsing stored user:', error);
+        }
+    }
+
+    return () => {
+        window.removeEventListener('userLogin', handleUserLogin);
+    };
+}, []);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          parsedUser.isAdmin = parsedUser.rol === 'admin';
+          setUser(parsedUser);
+        } catch (error) {
+          console.error('Error al parsear usuario:', error);
+        }
+      }
+    };
+
+    checkAuth();
+    // También verificar cuando la URL cambia
+    const handleUrlChange = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('token')) {
+        authService.handleGoogleCallback();
+      }
+    };
+
+    handleUrlChange();
+  }, []);
+
   const toggleDarkMode = () => {
     const newMode = !isDarkMode;
     setIsDarkMode(newMode);
@@ -174,48 +232,48 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
           <span className="logo-text">Miuvuu</span>
         </div>
 
-        <div 
-  className={`header-selecters ${user ? (user.isAdmin ? 'admin' : 'logged-in') : 'logged-out'}`}
->
-  <nav className="categories">
-    <ul>
-      {generos.map((genero) => (
-        <li
-          key={genero}
-          onMouseEnter={() => handleMouseEnter(genero)}
-          onMouseLeave={handleMouseLeave}
-          onClick={() => handleGeneroClick(genero)}
-          className="category-item"
+        <div
+          className={`header-selecters ${user ? (user.isAdmin ? 'admin' : 'logged-in') : 'logged-out'}`}
         >
-          {genero}
-        </li>
-      ))}
-    </ul>
-    {hoveredGenero && (
-      <div
-        className="subcategories"
-        onMouseEnter={() => handleMouseEnter(hoveredGenero)}
-        onMouseLeave={handleMouseLeave}
-      >
-        <ul>
-          {categorias
-            .filter((categoria) => categoria.genero === hoveredGenero)
-            .map((categoria) => (
-              <li
-                key={categoria.id}
-                onClick={() => onCategorySelect(categoria.nombre, hoveredGenero)}
-                className="subcategory-item"
+          <nav className="categories">
+            <ul>
+              {generos.map((genero) => (
+                <li
+                  key={genero}
+                  onMouseEnter={() => handleMouseEnter(genero)}
+                  onMouseLeave={handleMouseLeave}
+                  onClick={() => handleGeneroClick(genero)}
+                  className="category-item"
+                >
+                  {genero}
+                </li>
+              ))}
+            </ul>
+            {hoveredGenero && (
+              <div
+                className="subcategories"
+                onMouseEnter={() => handleMouseEnter(hoveredGenero)}
+                onMouseLeave={handleMouseLeave}
               >
-                {categoria.nombre}
-              </li>
-            ))}
-        </ul>
-      </div>
-    )}
-  </nav>
-</div>
+                <ul>
+                  {categorias
+                    .filter((categoria) => categoria.genero === hoveredGenero)
+                    .map((categoria) => (
+                      <li
+                        key={categoria.id}
+                        onClick={() => onCategorySelect(categoria.nombre, hoveredGenero)}
+                        className="subcategory-item"
+                      >
+                        {categoria.nombre}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            )}
+          </nav>
+        </div>
 
-        
+
 
         <div className="header-icons">
           <div className="search-container">

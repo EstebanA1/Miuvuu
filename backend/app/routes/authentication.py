@@ -1,22 +1,18 @@
-from app.crud.usuarios import get_usuario_by_correo, get_usuario_by_nombre, verify_password
+# authentication.py
+from app.crud.usuarios import get_usuario_by_correo, get_usuario_by_nombre, verify_password, create_usuario as create_new_user
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.responses import JSONResponse
-from datetime import datetime, timedelta
 from app.database import get_db
 from pydantic import BaseModel
-import jwt
 import logging
+from app.auth.auth_utils import create_access_token, verify_google_token
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-
-SECRET_KEY = "tu_clave_secreta_muy_segura"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
@@ -77,7 +73,7 @@ async def login(login_data: LoginData, db: AsyncSession = Depends(get_db)):
             key="access_token",
             value=f"Bearer {access_token}",
             httponly=True,
-            max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60 
+            max_age=30 * 60  # 30 minutos
         )
         return response
 
@@ -92,15 +88,37 @@ async def login(login_data: LoginData, db: AsyncSession = Depends(get_db)):
 
 @router.post("/auth/logout")
 async def logout():
-    response = JSONResponse(
-        content={"message": "Logout exitoso"}
-    )
+    response = JSONResponse(content={"message": "Logout exitoso"})
     response.delete_cookie(key="access_token")
     return response
 
-def create_access_token(data: dict):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+@router.post("/auth/google")
+async def google_login(token: str, db: AsyncSession = Depends(get_db)):
+    try:
+        idinfo = await verify_google_token(token)
+        
+        user = await get_usuario_by_correo(db, idinfo["email"])
+        if not user:
+            user = await create_new_user(db, {
+                "correo": idinfo["email"],
+                "nombre": idinfo["name"],
+                "rol": "usuario"
+            })
+
+        access_token = create_access_token(data={"sub": user.correo})
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": {
+                "id": user.id,
+                "email": user.correo,
+                "nombre": user.nombre,
+                "rol": user.rol
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error en Google login: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error al autenticar con Google"
+        )
