@@ -109,21 +109,7 @@ const AuthModal = ({ open, onClose }) => {
                         <h1>Crear Cuenta</h1>
                         <div className="social-icons">
 
-
-                            <button
-                                type="button"
-                                className="google-button"
-                                onClick={() => {
-                                    console.log('Botón de Google clickeado');
-                                    window.location.href = "http://127.0.0.1:8000/api/auth/google/login";
-                                }}
-                            >
-                                <img src="/google.svg" alt="Google Icon" className="google-icon" />
-                                Continuar con Google
-                            </button>
-
                         </div>
-                        <span>o usa tu email para registrarte</span>
                         {error && <div className="error-message">{error}</div>}
                         {success && <div className="success-message">{success}</div>}
                         <input

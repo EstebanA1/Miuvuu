@@ -1,8 +1,5 @@
 import React from 'react';
 import './ErrorPage.css';
-import { AxiosError } from 'axios';
-
-console.log('Detalles: ' + AxiosError);
 
 const ErrorPage = () => (
     <div className="error-page">

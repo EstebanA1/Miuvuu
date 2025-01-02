@@ -148,31 +148,24 @@ export const authService = {
         try {
             const params = new URLSearchParams(window.location.search);
             const token = params.get('token');
-            const userStr = params.get('user');
-            const error = params.get('error');
+            const encodedData = params.get('data');
 
-            if (error) {
-                console.error('Error en la autenticación de Google:', error);
-                return { success: false, error };
-            }
-
-            if (!token || !userStr) {
-                console.error('Faltan datos necesarios en la respuesta');
+            if (!token || !encodedData) {
                 return { success: false, error: 'Datos de autenticación incompletos' };
             }
 
             try {
-                const user = JSON.parse(decodeURIComponent(userStr));
+                const userData = JSON.parse(atob(encodedData));
+
                 localStorage.setItem('token', token);
-                localStorage.setItem('user', JSON.stringify(user));
+                localStorage.setItem('user', JSON.stringify(userData));
                 axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-                // Disparar evento de login exitoso
-                window.dispatchEvent(new CustomEvent('googleLoginSuccess', {
-                    detail: { user, token }
+                window.dispatchEvent(new CustomEvent('userLogin', {
+                    detail: userData
                 }));
 
-                return { success: true, user };
+                return { success: true, user: userData };
             } catch (parseError) {
                 console.error('Error al procesar datos del usuario:', parseError);
                 return { success: false, error: 'Error al procesar datos del usuario' };

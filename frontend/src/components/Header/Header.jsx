@@ -14,6 +14,7 @@ import MenuItem from '@mui/material/MenuItem';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useNavigate } from 'react-router-dom';
+import { authService } from '../../services/authService';
 
 const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
   const [isVisible, setIsVisible] = useState(true);

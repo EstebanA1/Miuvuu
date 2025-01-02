@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { authService } from '../../services/authService';
 
 const AuthCallback = () => {
     const navigate = useNavigate();
@@ -8,34 +8,14 @@ const AuthCallback = () => {
     useEffect(() => {
         const handleCallback = async () => {
             try {
-                const params = new URLSearchParams(window.location.search);
-                const token = params.get('token');
-                const encodedData = params.get('data');
-
-                if (!token || !encodedData) {
-                    console.error('Datos de autenticación incompletos');
-                    navigate('/auth/error');
-                    return;
-                }
-
-                try {
-                    const userData = JSON.parse(atob(encodedData));
-                    
-                    localStorage.setItem('token', token);
-                    localStorage.setItem('user', JSON.stringify(userData));
-
-                    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-                    window.dispatchEvent(new CustomEvent('userLogin', { 
-                        detail: userData 
-                    }));
-
+                const result = await authService.handleGoogleCallback();
+                
+                if (result.success) {
                     navigate('/', { replace: true });
-                } catch (parseError) {
-                    console.error('Error al procesar datos del usuario:', parseError);
+                } else {
+                    console.error('Error en autenticación:', result.error);
                     navigate('/auth/error');
                 }
-
             } catch (error) {
                 console.error('Error procesando callback:', error);
                 navigate('/auth/error');
