@@ -42,35 +42,35 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
 
   useEffect(() => {
     const handleUserLogin = (event) => {
-        const userData = event.detail;
-        if (userData) {
-            setUser({
-                ...userData,
-                isAdmin: userData.rol === 'admin'
-            });
-            setAuthModalOpen(false);
-        }
+      const userData = event.detail;
+      if (userData) {
+        setUser({
+          ...userData,
+          isAdmin: userData.rol === 'admin'
+        });
+        setAuthModalOpen(false);
+      }
     };
 
     window.addEventListener('userLogin', handleUserLogin);
 
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-        try {
-            const parsedUser = JSON.parse(storedUser);
-            setUser({
-                ...parsedUser,
-                isAdmin: parsedUser.rol === 'admin'
-            });
-        } catch (error) {
-            console.error('Error parsing stored user:', error);
-        }
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser({
+          ...parsedUser,
+          isAdmin: parsedUser.rol === 'admin'
+        });
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+      }
     }
 
     return () => {
-        window.removeEventListener('userLogin', handleUserLogin);
+      window.removeEventListener('userLogin', handleUserLogin);
     };
-}, []);
+  }, []);
 
   useEffect(() => {
     const checkAuth = () => {
@@ -87,7 +87,6 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
     };
 
     checkAuth();
-    // También verificar cuando la URL cambia
     const handleUrlChange = () => {
       const params = new URLSearchParams(window.location.search);
       if (params.has('token')) {
@@ -140,11 +139,10 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    authService.logout();
     setUser(null);
     handleMenuClose();
-    window.location.reload();
+    navigate('/', { replace: true });
   };
 
   const handleManageAccounts = () => {
@@ -274,8 +272,6 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
           </nav>
         </div>
 
-
-
         <div className="header-icons">
           <div className="search-container">
             <input
@@ -289,16 +285,18 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
               <SearchIcon />
             </IconButton>
           </div>
-          {user && (
-            <>
-              <IconButton onClick={() => navigate('/favoritos')}>
-                <FavoriteIcon />
-              </IconButton>
-              <IconButton>
-                <ShoppingCartIcon />
-              </IconButton>
-            </>
+
+          {authService.hasPermission('manage_favorites') && (
+            <IconButton onClick={() => navigate('/favoritos')}>
+              <FavoriteIcon />
+            </IconButton>
           )}
+          {authService.hasPermission('view_cart') && (
+            <IconButton>
+              <ShoppingCartIcon />
+            </IconButton>
+          )}
+
           <div className="dark-mode-toggle">
             <IconButton onClick={toggleDarkMode}>
               {isDarkMode ? <DarkModeIcon /> : <LightModeIcon />}
@@ -319,7 +317,7 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
             <MenuItem onClick={handleMenuClose}>Mis Pedidos</MenuItem>
             <MenuItem onClick={handleLogout}>Cerrar Sesión</MenuItem>
           </Menu>
-          {user && user.isAdmin === true && (
+          {authService.hasPermission('all') && (
             <IconButton onClick={handleManageAccounts}>
               <ManageAccountsIcon />
             </IconButton>

@@ -111,27 +111,53 @@ export const authService = {
         }
     },
 
-    logout: () => {
-        try {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            delete axios.defaults.headers.common['Authorization'];
-            return true;
-        } catch (error) {
-            console.error('Error durante el logout:', error);
-            return false;
-        }
-    },
-
-    getCurrentUser: () => {
+    getCurrentUser() {
         try {
             const user = localStorage.getItem('user');
             return user ? JSON.parse(user) : null;
         } catch (error) {
-            console.error('Error al obtener usuario actual:', error);
+            console.error('Error al obtener usuario:', error);
             return null;
         }
     },
+
+    logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.dispatchEvent(new StorageEvent('storage', {
+            key: 'user',
+            newValue: null
+        }));
+    },
+    hasPermission(requiredPermission) {
+        const user = this.getCurrentUser();
+        const userRole = user?.rol || 'public';
+
+        const ROLE_PERMISSIONS = {
+            admin: ['all'],
+            vendedor: [
+                'view_products',
+                'manage_products',
+                'view_profile',
+                'manage_favorites',
+                'view_cart'
+            ],
+            usuario: [
+                'view_products',
+                'view_profile',
+                'manage_favorites',
+                'view_cart'
+            ],
+            public: [
+                'view_products',
+                'auth'
+            ]
+        };
+
+        const userPermissions = ROLE_PERMISSIONS[userRole];
+        return userPermissions?.includes('all') || userPermissions?.includes(requiredPermission);
+    },
+
 
     isAuthenticated: () => {
         try {

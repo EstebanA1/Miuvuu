@@ -197,12 +197,12 @@ const AuthModal = ({ open, onClose }) => {
                 <div className="toggle-container">
                     <div className="toggle">
                         <div className="toggle-panel toggle-left">
-                            <h1>¡Bienvenido de nuevo!</h1>
+                            <h1>¡Bienvenidx de nuevo!</h1>
                             <p>Ingresa tus datos personales para usar todas las funciones del sitio</p>
                             <button className="hidden" onClick={() => setIsActive(false)}>Iniciar Sesión</button>
                         </div>
                         <div className="toggle-panel toggle-right">
-                            <h1>¡Hola, amigo!</h1>
+                            <h1>¡Hola, amigx!</h1>
                             <p>Regístrate con tus datos personales para usar todas las funciones del sitio</p>
                             <button className="hidden" onClick={() => setIsActive(true)}>Registrarse</button>
                         </div>

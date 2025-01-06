@@ -81,7 +81,7 @@
 }
 
 .header.dark-mode {
-  background-color: #151515;
+  background-color:#0a0a0a;
 }
 
 .logo {
@@ -154,7 +154,7 @@ body.dark-mode .categories li {
 }
 
 body.dark-mode .subcategories {
-  background-color: #151515;
+  background-color: #0a0a0a;
 }
 
 .header-selecters {
@@ -171,4 +171,8 @@ body.dark-mode .subcategories {
 
 .header-selecters.admin {
   margin-left: 340px;
+}
+
+body.dark-mode .header-icons .MuiIconButton-root {
+  color: rgb(161 161 161);
 }

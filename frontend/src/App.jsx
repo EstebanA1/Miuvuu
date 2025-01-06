@@ -11,6 +11,8 @@ import FavoritesPage from './components/Favorites/FavoritePage';
 import { FavoritesProvider } from './context/FavoritesContext';
 import AuthCallback from './components/Auth/AuthCallback';
 import ErrorPage from './components/Errorpage/ErrorPage';
+import { ProtectedRoute } from './config/ProtectedRoute';
+import AuthModal from './components/Auth/AuthModal';
 
 const MainContent = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -64,11 +66,38 @@ const MainContent = () => {
       <Routes>
         <Route path="/" element={<Content key={location.search} filter={filter} />} />
         <Route path="/producto/:id" element={<ProductDetail />} />
-        <Route path="/manage-users" element={<ManageUsersPage />} />
-        <Route path="/favoritos" element={<FavoritesPage />} />
-        <Route path="/profile" element={<MyProfile />} />
+        <Route path="/auth" element={<AuthModal />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/auth/error" element={<ErrorPage />} />
+
+        <Route 
+          path="/profile" 
+          element={
+            <ProtectedRoute 
+              element={<MyProfile />}
+              requiredPermission="view_profile"
+            />
+          }
+        />
+        <Route 
+          path="/favoritos" 
+          element={
+            <ProtectedRoute 
+              element={<FavoritesPage />}
+              requiredPermission="manage_favorites"
+            />
+          }
+        />
+
+        <Route 
+          path="/manage-users" 
+          element={
+            <ProtectedRoute 
+              element={<ManageUsersPage />}
+              requiredPermission="all"
+            />
+          }
+        />
       </Routes>
       <Footer />
     </>
