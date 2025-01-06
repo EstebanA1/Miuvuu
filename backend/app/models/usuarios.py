@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from app.database import Base
 
 class Usuario(Base):
@@ -9,4 +10,6 @@ class Usuario(Base):
     correo = Column(String(100), unique=True, index=True)
     contraseña = Column(String(100))
     metodo_pago = Column("metodo_pago", ARRAY(String(100)))
-    rol = Column(String(50)) 
+    rol = Column(String(50))
+    favoritos = Column(ARRAY(Integer), default=[])
+    carrito_compra = Column(JSONB, default=[])

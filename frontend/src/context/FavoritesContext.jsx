@@ -1,50 +1,53 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { favoritesService } from '../services/favoritesService';
 
 const FavoritesContext = createContext();
 
 const FavoritesProvider = ({ children }) => {
-    const [favorites, setFavorites] = useState(() => {
-        try {
-            const storedFavorites = localStorage.getItem('favorites');
-            return storedFavorites ? JSON.parse(storedFavorites) : [];
-        } catch (error) {
-            console.error('Error al cargar favoritos:', error);
-            return [];
-        }
-    });
+    const [favorites, setFavorites] = useState([]);
+    const [user, setUser] = useState(null);
 
-    // Actualizar localStorage cada vez que cambien los favoritos
     useEffect(() => {
-        localStorage.setItem('favorites', JSON.stringify(favorites));
-    }, [favorites]);
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+    }, []);
 
-    const toggleFavorite = (product) => {
-        if (!product) return;
-        
-        setFavorites(prevFavorites => {
-            const isFavorite = prevFavorites.some(item => item.id === product.id);
+    useEffect(() => {
+        const fetchFavorites = async () => {
+            if (!user) return;
             
-            if (isFavorite) {
-                // Remover el producto de favoritos
-                const updatedFavorites = prevFavorites.filter(item => item.id !== product.id);
-                return updatedFavorites;
-            } else {
-                // Agregar el producto a favoritos
-                return [...prevFavorites, product];
+            try {
+                const favoritesData = await favoritesService.getFavorites(user.id);
+                setFavorites(favoritesData || []);
+            } catch (error) {
+                console.error('Error al cargar favoritos:', error);
             }
-        });
+        };
+
+        fetchFavorites();
+    }, [user]);
+
+    const toggleFavorite = async (product) => {
+        if (!user || !product) return;
+
+        try {
+            const isFavorite = favorites.includes(product.id);
+            const response = isFavorite 
+                ? await favoritesService.removeFavorite(product.id, user.id)
+                : await favoritesService.addFavorite(product.id, user.id);
+            
+            setFavorites(response.favorites);
+        } catch (error) {
+            console.error('Error al actualizar favoritos:', error);
+        }
     };
 
-    const isFavorite = (productId) => {
-        return favorites.some(item => item.id === productId);
-    };
+    const isFavorite = (productId) => favorites.includes(productId);
 
     return (
-        <FavoritesContext.Provider value={{ 
-            favorites,
-            toggleFavorite,
-            isFavorite
-        }}>
+        <FavoritesContext.Provider value={{ favorites, toggleFavorite, isFavorite }}>
             {children}
         </FavoritesContext.Provider>
     );

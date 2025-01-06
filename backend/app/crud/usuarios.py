@@ -5,6 +5,7 @@ from app.schemas.usuarios import UsuarioCreate
 from passlib.context import CryptContext
 from fastapi import HTTPException
 from sqlalchemy.dialects.postgresql import ARRAY
+from app.models.productos import Producto
 
 pwd_context = CryptContext(
     schemes=["bcrypt"],
@@ -20,10 +21,38 @@ async def create_usuario(db: AsyncSession, usuario: UsuarioCreate):
         usuario_dict['contraseña'] = hashed_password
         usuario_dict['metodo_pago'] = usuario_dict.get('metodo_pago', []) or []
         usuario_dict['rol'] = usuario_dict.get('rol', 'usuario')
+        usuario_dict['favoritos'] = usuario_dict.get('favoritos', [])
+        usuario_dict['carrito_compra'] = usuario_dict.get('carrito_compra', [])
 
         if not isinstance(usuario_dict['metodo_pago'], list):
             raise ValueError("El campo 'metodo_pago' debe ser una lista.")
 
+        # Validar favoritos
+        if usuario_dict['favoritos']:
+            query_favoritos = select(Producto.id).filter(Producto.id.in_(usuario_dict['favoritos']))
+            productos_favoritos = await db.execute(query_favoritos)
+            ids_favoritos_validos = {row[0] for row in productos_favoritos}
+            favoritos_invalidos = set(usuario_dict['favoritos']) - ids_favoritos_validos
+            if favoritos_invalidos:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Los siguientes IDs de favoritos no existen: {list(favoritos_invalidos)}"
+                )
+
+        # Validar carrito_compra
+        if usuario_dict['carrito_compra']:
+            carrito_ids = [item['producto_id'] for item in usuario_dict['carrito_compra']]
+            query_carrito = select(Producto.id).filter(Producto.id.in_(carrito_ids))
+            productos_carrito = await db.execute(query_carrito)
+            ids_carrito_validos = {row[0] for row in productos_carrito}
+            carrito_invalidos = set(carrito_ids) - ids_carrito_validos
+            if carrito_invalidos:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Los siguientes IDs de productos en el carrito no existen: {list(carrito_invalidos)}"
+                )
+
+        # Crear usuario
         db_usuario = Usuario(**usuario_dict)
         db.add(db_usuario)
         await db.commit()
@@ -33,6 +62,8 @@ async def create_usuario(db: AsyncSession, usuario: UsuarioCreate):
     except Exception as e:
         print(f"Error al crear usuario: {e}")
         raise HTTPException(status_code=500, detail=f"Error interno: {e}")
+
+
 
 async def get_usuarios(db: AsyncSession):
     result = await db.execute(select(Usuario))

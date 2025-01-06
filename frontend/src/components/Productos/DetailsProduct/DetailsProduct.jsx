@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Breadcrumbs, Link, IconButton } from '@mui/material';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import { getProductoById } from '../../../services/productos';
 import { getCategorias } from '../../../services/categorias';
+import { useFavorites } from '../../../context/FavoritesContext';
 import './DetailsProduct.css';
 
 const ProductDetail = () => {
@@ -17,6 +19,15 @@ const ProductDetail = () => {
     const [selectedColor, setSelectedColor] = useState(null);
     const [mainImage, setMainImage] = useState(null);
     const [categories, setCategories] = useState([]);
+    const [user, setUser] = useState(null);
+    const { favorites, toggleFavorite } = useFavorites();
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -41,6 +52,13 @@ const ProductDetail = () => {
         fetchData();
     }, [id]);
 
+    const handleFavoriteToggle = (e) => {
+        e.stopPropagation();
+        if (product) {
+            toggleFavorite(product);
+        }
+    };
+
     useEffect(() => {
         const fetchProductDetails = async () => {
             try {
@@ -63,20 +81,16 @@ const ProductDetail = () => {
     if (error) return <div className="error-container">{error}</div>;
     if (!product) return <div className="not-found-container">Producto no encontrado</div>;
 
-    // Simulando tallas disponibles
     const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
 
-    // Simulando colores disponibles (podrías adaptar esto según tus necesidades)
     const colors = [
         { name: 'Blanco', code: '#FFFFFF', border: true },
         { name: 'Negro', code: '#000000' },
         { name: 'Gris', code: '#808080' }
     ];
 
-    // Simulando imágenes adicionales
     const additionalImages = [
         product.image_url,
-        // Aquí podrías agregar más URLs de imágenes si las tienes
     ];
 
     const getCategoryName = () => {
@@ -93,7 +107,6 @@ const ProductDetail = () => {
             </Breadcrumbs>
 
             <div className="product-content">
-                {/* Columna izquierda: Imágenes */}
                 <div className="product-images">
                     <div className="main-image">
                         <img src={mainImage} alt={product.nombre} />
@@ -111,13 +124,11 @@ const ProductDetail = () => {
                     </div>
                 </div>
 
-                {/* Columna derecha: Información del producto */}
                 <div className="product-info">
 
                     <h1 className="product-title">{product.nombre}</h1>
 
                     <div className="rating">
-                        {/* Aquí podrías agregar el componente de estrellas */}
                         ⭐⭐⭐⭐☆ (4.0)
                     </div>
 
@@ -125,7 +136,6 @@ const ProductDetail = () => {
                         <h2>${product.precio}</h2>
                     </div>
 
-                    {/* Selector de Color */}
                     <div className="color-selector">
                         <label>Color</label>
                         <div className="color-options">
@@ -141,7 +151,6 @@ const ProductDetail = () => {
                         </div>
                     </div>
 
-                    {/* Selector de Talla */}
                     <div className="size-selector">
                         <div className="size-header">
                             <label>Talla</label>
@@ -160,29 +169,41 @@ const ProductDetail = () => {
                         </div>
                     </div>
 
-                    {/* Botones de acción */}
                     <div className="action-buttons">
                         <button className="add-to-cart-btn">
                             Añadir al carrito
                         </button>
-                        <IconButton className="favorite-btn">
-                            <FavoriteBorderIcon />
-                        </IconButton>
-                    </div>
+                        {user && (
+                            <IconButton
+                                className="favorite-btn"
+                                onClick={handleFavoriteToggle}
+                                sx={{
+                                    color: favorites.includes(product.id) ? 'red' : 'gray',
+                                    '&:hover': {
+                                        color: favorites.includes(product.id) ? '#ff3333' : '#666',
+                                        backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                                    }
+                                }}
+                            >
+                                {favorites.includes(product.id) ? (
+                                    <FavoriteIcon />
+                                ) : (
+                                    <FavoriteBorderIcon />
+                                )}
+                            </IconButton>
+                        )}
 
-                    {/* Información de envío */}
+                    </div>
                     <div className="shipping-info">
                         <LocalShippingOutlinedIcon />
                         <p>Envío gratis en pedidos superiores a $30.00</p>
                     </div>
 
-                    {/* Descripción del producto */}
                     <div className="product-description">
                         <h3>Descripción</h3>
                         <p>{product.descripcion}</p>
                     </div>
 
-                    {/* Stock */}
                     <div className="stock-info">
                         <p>Stock disponible: {product.cantidad} unidades</p>
                     </div>

@@ -284,7 +284,6 @@ const handleGoogleLogin = async (googleResponse) => {
         const data = await response.json();
 
         if (response.ok) {
-            // Guardar token y usuario
             localStorage.setItem("token", data.access_token);
             localStorage.setItem("user", JSON.stringify(data.user));
         } else {

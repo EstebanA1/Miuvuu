@@ -163,7 +163,14 @@ const Content = ({ filter }) => {
                       e.stopPropagation();
                       toggleFavorite(producto);
                     }}
-                    sx={{ color: favorites.some(f => f.id === producto.id) ? 'red' : 'gray' }}
+                    sx={{
+                      color: favorites.includes(producto.id) ? 'red' : 'gray',
+                      transition: 'color 0.3s ease',
+                      '&:hover': {
+                        color: favorites.includes(producto.id) ? '#ff3333' : '#666'
+                      }
+                    }}
+                    className="favorite-button"
                   >
                     <FavoriteIcon />
                   </IconButton>

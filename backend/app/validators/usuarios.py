@@ -1,5 +1,5 @@
 from pydantic_core import PydanticCustomError
-from typing import Any, List
+from typing import Any, List, Dict
 import re
 
 
@@ -88,6 +88,18 @@ class UsuarioValidator:
                 "rol_invalido",
                 f"El rol debe ser uno de los siguientes: {', '.join(roles_validos)}"
             )
+
+    @staticmethod
+    def validate_carrito_compra(carrito: List[Dict[str, int]]) -> None:
+        for item in carrito:
+            if not isinstance(item, dict) or "id" not in item or "cantidad" not in item:
+                raise PydanticCustomError(
+                    "carrito_invalido", "Cada elemento del carrito debe tener 'id' y 'cantidad'."
+                )
+            if not isinstance(item["id"], int) or not isinstance(item["cantidad"], int):
+                raise PydanticCustomError(
+                    "carrito_invalido", "'id' y 'cantidad' deben ser enteros."
+                )
 
     @staticmethod
     def validate_all(values: Any, contexto: str = "entrada") -> Any:

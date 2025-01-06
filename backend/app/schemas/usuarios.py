@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 from pydantic import BaseModel, model_validator, Field
 from app.validators.usuarios import UsuarioValidator
 
@@ -7,6 +7,8 @@ class UsuarioBase(BaseModel):
     correo: str = Field(..., max_length=255)
     metodo_pago: List[str] = [] 
     rol: str = "usuario"   
+    favoritos: List[int] = []  
+    carrito_compra: List[Dict[str, int]] = []
 
     @model_validator(mode="before")
     @classmethod
@@ -19,7 +21,8 @@ class UsuarioCreate(BaseModel):
     contraseña: str
     metodo_pago: Optional[List[str]] = []
     rol: Optional[str] = "usuario"
-
+    favoritos: Optional[List[int]] = []  
+    carrito_compra: Optional[List[Dict[str, int]]] = []
 
 class UsuarioSalida(BaseModel):
     id: int
@@ -27,6 +30,8 @@ class UsuarioSalida(BaseModel):
     correo: str
     metodo_pago: List[str]  
     rol: str 
+    favoritos: List[int]
+    carrito_compra: List[Dict[str, int]]
 
     class Config:
         from_attributes = True
