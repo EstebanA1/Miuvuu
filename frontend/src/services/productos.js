@@ -40,6 +40,15 @@ export const getProductos = async (query = "") => {
   }
 };
 
+export const getProductoById = async (id) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/api/productos/${id}`);
+    return formatProductData(response.data);
+  } catch (error) {
+    console.error('Error al obtener el producto:', error);
+    throw error;
+  }
+};
 
 export const addProduct = async (product) => {
   const formData = new FormData();
