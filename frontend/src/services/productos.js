@@ -18,26 +18,28 @@ const formatProductData = (product) => {
 
 export const getProductos = async (query = "") => {
   try {
-    const response = await axios.get(`${API_URL}${query}`);
-    return response.data.map((producto) => ({
-      ...producto,
-      image_url: producto.image_url ? `${API_BASE_URL}${producto.image_url}` : null,
-    }));
+      const response = await axios.get(`${API_URL}${query}`);
+      let productos = [];
+
+      if (response.data.hasOwnProperty('products')) {
+          productos = response.data.products.map(producto => ({
+              ...producto,
+              image_url: producto.image_url ? `${API_BASE_URL}${producto.image_url}` : null,
+          }));
+      } else if (Array.isArray(response.data)) {
+          productos = response.data.map(producto => ({
+              ...producto,
+              image_url: producto.image_url ? `${API_BASE_URL}${producto.image_url}` : null,
+          }));
+      }
+
+      return productos; 
   } catch (error) {
-    console.error("Error al obtener los productos:", error);
-    throw error;
+      console.error("Error al obtener los productos:", error);
+      throw error;
   }
 };
 
-export const getProductoById = async (id) => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/api/productos/${id}`);
-    return formatProductData(response.data);
-  } catch (error) {
-    console.error('Error al obtener el producto:', error);
-    throw error;
-  }
-};
 
 export const addProduct = async (product) => {
   const formData = new FormData();

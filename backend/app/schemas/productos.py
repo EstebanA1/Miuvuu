@@ -1,6 +1,5 @@
-from pydantic import BaseModel, model_validator, Field
-from typing import Optional
-from app.validators.productos import ProductoValidator
+from pydantic import BaseModel, Field
+from typing import Optional, List
 
 class ProductoBase(BaseModel):
     nombre: str = Field(..., max_length=100)
@@ -10,10 +9,8 @@ class ProductoBase(BaseModel):
     categoria_id: int
     image_url: Optional[str] = None
 
-    @model_validator(mode='before')
-    @classmethod
-    def validar_campos(cls, values):
-        return ProductoValidator.validate_all(values)
+    class Config:
+        from_attributes = True
 
 class ProductoCreate(ProductoBase):
     pass
@@ -23,4 +20,10 @@ class Producto(ProductoBase):
 
     class Config:
         from_attributes = True
-        arbitrary_types_allowed = True
+
+class ProductoResponse(BaseModel):
+    products: List[Producto]
+    total: int
+
+    class Config:
+        from_attributes = True

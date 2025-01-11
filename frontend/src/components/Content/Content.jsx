@@ -11,6 +11,10 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useFavorites } from '../../context/FavoritesContext';
+import Pagination from '../Pagination/Pagination';
+import { useSearchParams } from 'react-router-dom';
+
+const ITEMS_PER_PAGE = 15;
 
 const Content = ({ filter }) => {
   const [modalState, setModalState] = useState({
@@ -25,6 +29,9 @@ const Content = ({ filter }) => {
   const [productos, setProductos] = useState([]);
   const { favorites, toggleFavorite } = useFavorites();
   const [user, setUser] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [totalProducts, setTotalProducts] = useState(0);
+  const currentPage = parseInt(searchParams.get('page')) || 1;
 
   const fetchProductos = async (filterParams = filter) => {
     try {
@@ -32,13 +39,30 @@ const Content = ({ filter }) => {
       if (filterParams.category) query.push(`categoria=${encodeURIComponent(filterParams.category)}`);
       if (filterParams.gender) query.push(`genero=${encodeURIComponent(filterParams.gender)}`);
       if (filterParams.searchQuery) query.push(`searchQuery=${encodeURIComponent(filterParams.searchQuery)}`);
-
+  
+      query.push(`page=${currentPage}`);
+      query.push(`limit=${ITEMS_PER_PAGE}`);
+  
       const queryString = query.length > 0 ? `?${query.join("&")}` : "";
-      const data = await getProductos(queryString);
-      setProductos(data);
+      const response = await getProductos(queryString);
+      
+      if (response.hasOwnProperty('products')) {
+        setProductos(response.products);
+        setTotalProducts(response.total);
+      } else {
+        setProductos(response);
+        setTotalProducts(response.length);
+      }
     } catch (error) {
       console.error("Error al obtener productos", error);
     }
+  };
+
+  const handlePageChange = (newPage) => {
+    setSearchParams(prev => {
+      prev.set('page', newPage);
+      return prev;
+    });
   };
 
   useEffect(() => {
@@ -46,7 +70,7 @@ const Content = ({ filter }) => {
       fetchProductos();
     }
     window.isFilterUpdateInProgress = false;
-  }, [filter]);
+  }, [filter, currentPage]);
 
   useEffect(() => {
     const handleFilterUpdate = (event) => {
@@ -56,14 +80,14 @@ const Content = ({ filter }) => {
 
     window.addEventListener('filterUpdate', handleFilterUpdate);
     return () => window.removeEventListener('filterUpdate', handleFilterUpdate);
-  }, []); //filter 2
+  }, []);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
-  }, []); //user
+  }, []);
 
   const hasAdminPrivileges = () => {
     const user = authService.getCurrentUser();
@@ -113,6 +137,13 @@ const Content = ({ filter }) => {
   const handleProductClick = (producto) => {
     navigate(`/producto/${producto.id}`);
   };
+
+  const handleFavoriteClick = (e, producto) => {
+    e.stopPropagation();
+    toggleFavorite(producto);
+  };
+
+  const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
 
   return (
     <div className="content-container">
@@ -194,6 +225,13 @@ const Content = ({ filter }) => {
               </div>
             ))}
           </div>
+          {totalProducts > ITEMS_PER_PAGE && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          )}
         </div>
       </div>
 

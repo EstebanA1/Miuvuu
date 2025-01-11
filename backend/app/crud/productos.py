@@ -1,40 +1,43 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.exc import NoResultFound
 from app.models.productos import Producto
 from app.schemas.productos import ProductoCreate
 from app.models.categorias import Categoria
 from sqlalchemy.future import select
-
-async def get_productos(db, categoria: str = None, genero: str = None, search_query: str = None):
-    query = select(Producto).join(Categoria)
-    
-    # Filtrar por categoría
-    if categoria:
-        query = query.filter(Categoria.nombre == categoria)
-
-    # Filtrar por género
-    if genero:
-        query = query.filter(Categoria.genero == genero)
-
-    # Filtrar por nombre del producto
-    if search_query:
-        query = query.filter(Producto.nombre.ilike(f"%{search_query}%"))
-
-    result = await db.execute(query)
-    return result.scalars().all()
-
+from sqlalchemy.sql import func
 
 async def get_producto(db: AsyncSession, producto_id: int):
     query = select(Producto).where(Producto.id == producto_id)
-    try:
-        result = await db.execute(query)
-        return result.scalars().one()
-    except NoResultFound:
-        return None
+    result = await db.execute(query)
+    return result.scalars().first()
+
+
+async def get_productos(db, categoria: str = None, genero: str = None, search_query: str = None, page: int = 1, limit: int = 15):
+    query = select(Producto).join(Categoria)
+    
+    if categoria:
+        query = query.filter(Categoria.nombre == categoria)
+    if genero:
+        query = query.filter(Categoria.genero == genero)
+    if search_query:
+        query = query.filter(Producto.nombre.ilike(f"%{search_query}%"))
+
+    count_query = select(func.count()).select_from(query)
+    total = await db.scalar(count_query)
+
+    offset = (page - 1) * limit
+    query = query.offset(offset).limit(limit)
+
+    result = await db.execute(query)
+    productos = result.scalars().all()
+    
+    return {
+        "products": productos,
+        "total": total
+    }
 
 async def create_producto(db: AsyncSession, producto: ProductoCreate):
-    print("Datos recibidos:", producto)  # <-- Log temporal para depuración
+    print("Datos recibidos:", producto) 
 
     db_producto = Producto(
         nombre=producto.nombre,

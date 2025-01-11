@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Body, File, Form, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, status, Query, File, Form, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
-from app.schemas.productos import Producto, ProductoCreate
+from app.schemas.productos import Producto, ProductoCreate, ProductoResponse
 from app.crud.productos import get_productos, get_producto, create_producto, update_producto, delete_producto
 from app.validators.productos import ProductoValidator
 from typing import Optional
@@ -29,14 +29,33 @@ def generate_unique_name(original_name: str) -> str:
     random_number = random.randint(1, 10)
     return f"{sanitized_name}_{timestamp}_{random_number}"
 
-@router.get("/", response_model=list[Producto], response_description="Lista de todos los productos")
+@router.get("/", response_model=ProductoResponse)
 async def listar_productos(
     categoria: Optional[str] = None,
     genero: Optional[str] = None,
     searchQuery: Optional[str] = None,
+    page: Optional[int] = Query(default=1, ge=1, description="Número de página"),
+    limit: Optional[int] = Query(default=30, ge=1, le=100, description="Límite de productos por página"),
     db: AsyncSession = Depends(get_db)
 ):
-    return await get_productos(db, categoria=categoria, genero=genero, search_query=searchQuery)
+    try:
+        result = await get_productos(
+            db, 
+            categoria=categoria, 
+            genero=genero, 
+            search_query=searchQuery,
+            page=page,
+            limit=limit
+        )
+        return ProductoResponse(
+            products=result["products"],
+            total=result["total"]
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
 
 
 @router.get("/{producto_id}", response_model=Producto, responses={404: {"description": "Producto no encontrado"}})
