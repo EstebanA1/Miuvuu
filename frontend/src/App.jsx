@@ -13,6 +13,8 @@ import AuthCallback from './components/Auth/AuthCallback';
 import ErrorPage from './components/Errorpage/ErrorPage';
 import { ProtectedRoute } from './config/ProtectedRoute';
 import AuthModal from './components/Auth/AuthModal';
+import { CartProvider } from './context/CartContext';
+import CartPage from './components/Cart/CartPage';
 
 const MainContent = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -69,34 +71,25 @@ const MainContent = () => {
         <Route path="/auth" element={<AuthModal />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/auth/error" element={<ErrorPage />} />
-
-        <Route 
-          path="/profile" 
-          element={
-            <ProtectedRoute 
-              element={<MyProfile />}
-              requiredPermission="view_profile"
-            />
-          }
-        />
-        <Route 
-          path="/favoritos" 
-          element={
-            <ProtectedRoute 
-              element={<FavoritesPage />}
-              requiredPermission="manage_favorites"
-            />
-          }
+        <Route path="/carrito" element={
+          <ProtectedRoute element={<CartPage />} requiredPermission="view_cart" />
+        }
         />
 
-        <Route 
-          path="/manage-users" 
-          element={
-            <ProtectedRoute 
-              element={<ManageUsersPage />}
-              requiredPermission="all"
-            />
-          }
+        <Route path="/profile" element={
+          <ProtectedRoute element={<MyProfile />} requiredPermission="view_profile" />
+        }
+        />
+
+        <Route path="/favoritos" element={
+          <ProtectedRoute element={<FavoritesPage />} requiredPermission="manage_favorites" />
+        }
+        />
+
+        <Route path="/manage-users" element={
+          <ProtectedRoute element={<ManageUsersPage />}
+            requiredPermission="all" />
+        }
         />
       </Routes>
       <Footer />
@@ -109,7 +102,9 @@ const App = () => {
     <div className="App">
       <Router>
         <FavoritesProvider>
-          <MainContent />
+          <CartProvider>
+            <MainContent />
+          </CartProvider>
         </FavoritesProvider>
       </Router>
     </div>

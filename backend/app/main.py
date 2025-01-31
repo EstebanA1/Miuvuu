@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from app.routes.authentication import router as auth_router
 from app.routes.authGoogle import router as google_auth_router
 from app.routes.favorites import router as favorites_router
+from app.routes.carrito import router as carrito_router
 
 app = FastAPI(
     title="Miuvuu API",
@@ -33,6 +34,7 @@ app.include_router(categorias.router, prefix="/api", tags=["categorias"])
 app.include_router(productos.router, prefix="/api", tags=["productos"])
 app.include_router(google_auth_router, prefix="/api/auth/google", tags=["autenticación con Google"])
 app.include_router(favorites_router, prefix="/api", tags=["favoritos"])
+app.include_router(carrito_router, prefix="/api", tags=["carrito"])
 
 @app.get("/")
 def read_root():

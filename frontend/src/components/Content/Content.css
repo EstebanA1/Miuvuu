@@ -82,11 +82,88 @@
   transition: 0.6s;
 }
 
-.principalInfo{
+.principalInfo {
+  padding: 15px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.upperSection {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  margin: 0 20px; 
-  justify-content: space-between;  
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+.product-name {
+  font-weight: bold;
+  font-size: 1.1em;
+  text-align: left;
+}
+
+.product-price {
+  font-weight: bold;
+  color: #666;
+}
+
+.downSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.size-selector-container {
+  flex: 1;
+}
+
+
+.size-btn {
+  padding: 5px 10px;
+  border: 1px solid #ddd;
+  background: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.size-btn.selected {
+  background-color: #323232;
+  color: white;
+  border-color: #323232;
+}
+
+.color-selector,
+.size-selector {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+}
+
+.color-option {
+  width: 25px;
+  height: 25px;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.color-option:hover {
+  transform: scale(1.2);
+}
+
+.color-option.selected-color::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border: 2px solid #000;
+  border-radius: 50%;
+}
+
+.dark-mode .color-option.selected-color::after {
+  border-color: #fff;
 }
 
 body.dark-mode {

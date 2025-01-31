@@ -74,7 +74,6 @@ async def actualizar_usuario(
 
 
 async def agregar_a_favoritos(db: AsyncSession, usuario_id: int, producto_id: int):
-    # Verificar que el producto existe
     producto = await db.execute(select(Producto).filter(Producto.id == producto_id))
     producto = producto.scalar_one_or_none()
 
@@ -83,7 +82,6 @@ async def agregar_a_favoritos(db: AsyncSession, usuario_id: int, producto_id: in
             status_code=404, detail="El producto no existe"
         )
 
-    # Obtener usuario
     usuario = await db.execute(select(Usuario).filter(Usuario.id == usuario_id))
     usuario = usuario.scalar_one_or_none()
 
@@ -92,7 +90,6 @@ async def agregar_a_favoritos(db: AsyncSession, usuario_id: int, producto_id: in
             status_code=404, detail="Usuario no encontrado"
         )
 
-    # Agregar producto a favoritos si no está ya presente
     if producto_id not in usuario.favoritos:
         usuario.favoritos.append(producto_id)
         db.add(usuario)
@@ -103,7 +100,6 @@ async def agregar_a_favoritos(db: AsyncSession, usuario_id: int, producto_id: in
 
 
 async def agregar_al_carrito(db: AsyncSession, usuario_id: int, producto_id: int, cantidad: int):
-    # Verificar que el producto existe
     producto = await db.execute(select(Producto).filter(Producto.id == producto_id))
     producto = producto.scalar_one_or_none()
 
@@ -112,7 +108,6 @@ async def agregar_al_carrito(db: AsyncSession, usuario_id: int, producto_id: int
             status_code=404, detail="El producto no existe"
         )
 
-    # Obtener usuario
     usuario = await db.execute(select(Usuario).filter(Usuario.id == usuario_id))
     usuario = usuario.scalar_one_or_none()
 
@@ -121,7 +116,6 @@ async def agregar_al_carrito(db: AsyncSession, usuario_id: int, producto_id: int
             status_code=404, detail="Usuario no encontrado"
         )
 
-    # Actualizar el carrito
     carrito = usuario.carrito or []
     for item in carrito:
         if item["producto_id"] == producto_id:

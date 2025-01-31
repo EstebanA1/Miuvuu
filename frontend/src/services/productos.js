@@ -18,25 +18,23 @@ const formatProductData = (product) => {
 
 export const getProductos = async (query = "") => {
   try {
-      const response = await axios.get(`${API_URL}${query}`);
-      let productos = [];
+    const response = await axios.get(`${API_URL}${query}`);
+    
+    const { products, total } = response.data;
+    
+    const formattedProducts = (products || []).map(producto => ({
+      ...producto,
+      image_url: producto.image_url ? `${API_BASE_URL}${producto.image_url}` : null,
+    }));
 
-      if (response.data.hasOwnProperty('products')) {
-          productos = response.data.products.map(producto => ({
-              ...producto,
-              image_url: producto.image_url ? `${API_BASE_URL}${producto.image_url}` : null,
-          }));
-      } else if (Array.isArray(response.data)) {
-          productos = response.data.map(producto => ({
-              ...producto,
-              image_url: producto.image_url ? `${API_BASE_URL}${producto.image_url}` : null,
-          }));
-      }
+    return {
+      products: formattedProducts,
+      total: total || formattedProducts.length
+    };
 
-      return productos; 
   } catch (error) {
-      console.error("Error al obtener los productos:", error);
-      throw error;
+    console.error("Error al obtener los productos:", error);
+    return { products: [], total: 0 }; 
   }
 };
 

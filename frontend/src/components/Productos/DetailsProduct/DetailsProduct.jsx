@@ -7,6 +7,8 @@ import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined
 import { getProductoById } from '../../../services/productos';
 import { getCategorias } from '../../../services/categorias';
 import { useFavorites } from '../../../context/FavoritesContext';
+import { useCart } from '../../../context/CartContext';
+import { carritoService } from '../../../services/carritoService';
 import './DetailsProduct.css';
 
 const ProductDetail = () => {
@@ -21,6 +23,7 @@ const ProductDetail = () => {
     const [categories, setCategories] = useState([]);
     const [user, setUser] = useState(null);
     const { favorites, toggleFavorite } = useFavorites();
+    const { updateCart } = useCart();
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -51,6 +54,32 @@ const ProductDetail = () => {
 
         fetchData();
     }, [id]);
+
+    const handleAddToCart = async () => {
+        if (!selectedSize || !selectedColor) {
+            alert('Por favor selecciona talla y color');
+            return;
+        }
+
+        if (!user) {
+            alert('Debes iniciar sesión para agregar productos al carrito');
+            return;
+        }
+
+        try {
+            await carritoService.addToCart(
+                product.id,
+                user.id,
+                selectedColor,
+                selectedSize
+            );
+            updateCart(user.id);
+            alert('Producto añadido al carrito');
+        } catch (error) {
+            console.error('Error al agregar al carrito:', error);
+            alert('Hubo un error al agregar el producto al carrito. Por favor intenta de nuevo.');
+        }
+    };
 
     const handleFavoriteToggle = (e) => {
         e.stopPropagation();
@@ -136,7 +165,7 @@ const ProductDetail = () => {
                         <h2>${product.precio}</h2>
                     </div>
 
-                    <div className="color-selector">
+                    <div className="color-selector2">
                         <label>Color</label>
                         <div className="color-options">
                             {colors.map((color) => (
@@ -151,7 +180,7 @@ const ProductDetail = () => {
                         </div>
                     </div>
 
-                    <div className="size-selector">
+                    <div className="size-selector2">
                         <div className="size-header">
                             <label>Talla</label>
                             <button className="size-guide">Guía de tallas</button>
@@ -170,7 +199,7 @@ const ProductDetail = () => {
                     </div>
 
                     <div className="action-buttons">
-                        <button className="add-to-cart-btn">
+                        <button className="add-to-cart-btn" onClick={handleAddToCart}>
                             Añadir al carrito
                         </button>
                         {user && (

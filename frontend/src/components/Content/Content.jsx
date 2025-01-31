@@ -39,22 +39,20 @@ const Content = ({ filter }) => {
       if (filterParams.category) query.push(`categoria=${encodeURIComponent(filterParams.category)}`);
       if (filterParams.gender) query.push(`genero=${encodeURIComponent(filterParams.gender)}`);
       if (filterParams.searchQuery) query.push(`searchQuery=${encodeURIComponent(filterParams.searchQuery)}`);
-  
+
       query.push(`page=${currentPage}`);
       query.push(`limit=${ITEMS_PER_PAGE}`);
-  
+
       const queryString = query.length > 0 ? `?${query.join("&")}` : "";
       const response = await getProductos(queryString);
-      
-      if (response.hasOwnProperty('products')) {
-        setProductos(response.products);
-        setTotalProducts(response.total);
-      } else {
-        setProductos(response);
-        setTotalProducts(response.length);
-      }
+    
+      setProductos(response.products);
+      setTotalProducts(response.total);
+  
     } catch (error) {
       console.error("Error al obtener productos", error);
+      setProductos([]);
+      setTotalProducts(0);
     }
   };
 
@@ -135,13 +133,15 @@ const Content = ({ filter }) => {
   };
 
   const handleProductClick = (producto) => {
+    if (!user) {
+      window.dispatchEvent(new CustomEvent('openAuthModal', {
+        detail: { productId: producto.id }
+      }));
+      return;
+    }
     navigate(`/producto/${producto.id}`);
   };
 
-  const handleFavoriteClick = (e, producto) => {
-    e.stopPropagation();
-    toggleFavorite(producto);
-  };
 
   const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
 
@@ -185,8 +185,10 @@ const Content = ({ filter }) => {
               >
                 {producto.image_url && <img src={producto.image_url} alt={producto.nombre} />}
                 <div className="principalInfo">
-                  <h3>{producto.nombre}</h3>
-                  <p>${producto.precio}</p>
+                  <div className="upperSection">
+                    <span className="product-name">{producto.nombre}</span>
+                    <span className="product-price">${producto.precio}</span>
+                  </div>
                 </div>
                 {user && (
                   <IconButton

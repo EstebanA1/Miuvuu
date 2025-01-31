@@ -1,5 +1,5 @@
 import "./Header.css";
-import { IconButton, Switch } from '@mui/material';
+import { IconButton, Badge } from '@mui/material';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import miuvuuLogo from "@assets/miuvuuIcon.svg";
@@ -15,6 +15,7 @@ import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
+import { useCart } from '../../context/CartContext';
 
 const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
   const [isVisible, setIsVisible] = useState(true);
@@ -31,6 +32,7 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
   const navigate = useNavigate();
   const inputRef = useRef(null);
   const isFirstRender = useRef(true);
+  const { cartCount } = useCart();
 
   useEffect(() => {
     const storedTheme = localStorage.getItem("theme");
@@ -216,6 +218,18 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
     }
   };
 
+  useEffect(() => {
+    const handleOpenAuthModal = (event) => {
+      if (!user) {
+        localStorage.setItem('pendingProduct', event.detail.productId);
+        setAuthModalOpen(true);
+      }
+    };
+  
+    window.addEventListener('openAuthModal', handleOpenAuthModal);
+    return () => window.removeEventListener('openAuthModal', handleOpenAuthModal);
+  }, [user]);
+
   return (
     <header className={`header ${isDarkMode ? 'dark-mode' : ''} ${isVisible ? 'visible' : 'hidden'}`}>
       <div className="header-content">
@@ -292,8 +306,10 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
             </IconButton>
           )}
           {authService.hasPermission('view_cart') && (
-            <IconButton>
-              <ShoppingCartIcon />
+            <IconButton onClick={() => navigate('/carrito')}>
+              <Badge badgeContent={cartCount} color="error">
+                <ShoppingCartIcon />
+              </Badge>
             </IconButton>
           )}
 

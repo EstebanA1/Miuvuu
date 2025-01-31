@@ -38,6 +38,7 @@ const AuthModal = ({ open, onClose }) => {
         setMouseDownOnOverlay(false);
     };
 
+
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
@@ -48,9 +49,18 @@ const AuthModal = ({ open, onClose }) => {
 
             if (result.success) {
                 setSuccess('¡Inicio de sesión exitoso, cargando!');
+
+                const pendingProduct = localStorage.getItem('pendingProduct');
+                localStorage.removeItem('pendingProduct');
+
                 await new Promise(resolve => setTimeout(resolve, 1500));
                 onClose();
-                window.location.reload();
+
+                if (pendingProduct) {
+                    window.location.href = `/producto/${pendingProduct}`;
+                } else {
+                    window.location.reload();
+                }
             }
         } catch (error) {
             setError(error.message || 'Error al iniciar sesión');
@@ -197,12 +207,12 @@ const AuthModal = ({ open, onClose }) => {
                 <div className="toggle-container">
                     <div className="toggle">
                         <div className="toggle-panel toggle-left">
-                            <h1>¡Bienvenidx de nuevo!</h1>
+                            <h1>¡Bienvenido de nuevo!</h1>
                             <p>Ingresa tus datos personales para usar todas las funciones del sitio</p>
                             <button className="hidden" onClick={() => setIsActive(false)}>Iniciar Sesión</button>
                         </div>
                         <div className="toggle-panel toggle-right">
-                            <h1>¡Hola, amigx!</h1>
+                            <h1>¡Bienvenido a Miuvuu!</h1>
                             <p>Regístrate con tus datos personales para usar todas las funciones del sitio</p>
                             <button className="hidden" onClick={() => setIsActive(true)}>Registrarse</button>
                         </div>

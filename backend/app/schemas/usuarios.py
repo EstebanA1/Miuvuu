@@ -8,7 +8,9 @@ class UsuarioBase(BaseModel):
     metodo_pago: List[str] = [] 
     rol: str = "usuario"   
     favoritos: List[int] = []  
-    carrito_compra: List[Dict[str, int]] = []
+    carrito_compra: List[Dict[str, int]] = Field(
+        default=[],
+    )
 
     @model_validator(mode="before")
     @classmethod

@@ -90,15 +90,17 @@ class UsuarioValidator:
             )
 
     @staticmethod
-    def validate_carrito_compra(carrito: List[Dict[str, int]]) -> None:
+    def validate_carrito_compra(carrito: List[Dict[str, int]]):
         for item in carrito:
-            if not isinstance(item, dict) or "id" not in item or "cantidad" not in item:
+            if not all(key in item for key in ['producto_id', 'cantidad']):
                 raise PydanticCustomError(
-                    "carrito_invalido", "Cada elemento del carrito debe tener 'id' y 'cantidad'."
+                    "carrito_invalido",
+                    "Cada elemento del carrito debe tener 'producto_id' y 'cantidad'"
                 )
-            if not isinstance(item["id"], int) or not isinstance(item["cantidad"], int):
+            if item["cantidad"] < 1:
                 raise PydanticCustomError(
-                    "carrito_invalido", "'id' y 'cantidad' deben ser enteros."
+                    "cantidad_invalida",
+                    "La cantidad debe ser al menos 1"
                 )
 
     @staticmethod
@@ -110,7 +112,6 @@ class UsuarioValidator:
         if contexto == "salida":
             return values
 
-        # Extraer valores del objeto recibido
         if hasattr(values, "model_dump"):
             values_dict = values.model_dump()
         elif hasattr(values, "dict"):
@@ -127,7 +128,6 @@ class UsuarioValidator:
                     if hasattr(values, k)
                 }
 
-        # Validar solo los campos que existen en los datos
         if "nombre" in values_dict:
             UsuarioValidator.validate_nombre(values_dict["nombre"])
         if "correo" in values_dict:
