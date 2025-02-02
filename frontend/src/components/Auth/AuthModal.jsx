@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { authService } from '../../services/authService';
 import './AuthModal.css';
+import { Eye, EyeOff } from 'lucide-react';
 
 const AuthModal = ({ open, onClose }) => {
     const [isActive, setIsActive] = useState(false);
@@ -13,6 +14,8 @@ const AuthModal = ({ open, onClose }) => {
     });
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [mouseDownOnOverlay, setMouseDownOnOverlay] = useState(false);
 
     const handleChange = (e) => {
@@ -37,7 +40,6 @@ const AuthModal = ({ open, onClose }) => {
         }
         setMouseDownOnOverlay(false);
     };
-
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -107,6 +109,14 @@ const AuthModal = ({ open, onClose }) => {
         }
     };
 
+    const togglePasswordVisibility = (field) => {
+        if (field === 'password') {
+            setShowPassword(!showPassword);
+        } else if (field === 'confirmPassword') {
+            setShowConfirmPassword(!showConfirmPassword);
+        }
+    };
+
     return open ? (
         <div
             className="modal-overlay"
@@ -140,25 +150,32 @@ const AuthModal = ({ open, onClose }) => {
                             required
                             autoComplete='off'
                         />
-                        <input
-                            type="password"
-                            placeholder="Contraseña"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            required
-                            autoComplete='off'
-                        />
-                        <input
-                            type="password"
-                            placeholder="Confirmar Contraseña"
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            required
-                            autoComplete='off'
-                        />
-                        <button type="submit">Registrarse</button>
+                        <div className="password-input">
+                            <input type={showPassword ? "text" : "password"} placeholder="Contraseña" name="password" value={formData.password} onChange={handleChange} required autoComplete='off' />
+                            <button className='showPS' type="button" onClick={() => togglePasswordVisibility('password')}>
+                                {showPassword ? <EyeOff /> : <Eye />}
+                            </button>
+                        </div>
+                        <div className="password-input">
+                            <input
+                                type={showConfirmPassword ? "text" : "password"}
+                                placeholder="Confirmar Contraseña"
+                                name="confirmPassword"
+                                value={formData.confirmPassword}
+                                onChange={handleChange}
+                                required
+                                autoComplete="off"
+                            />
+                            <button
+                                className="showPS2"
+                                type="button"
+                                onClick={() => togglePasswordVisibility("confirmPassword")}
+                            >
+                                {showConfirmPassword ? <EyeOff /> : <Eye />}
+                            </button>
+                        </div>
+
+                        <button className='registerBT' type="submit">Registrarse</button>
                     </form>
                 </div>
 
@@ -191,14 +208,21 @@ const AuthModal = ({ open, onClose }) => {
                             autoComplete='off'
                         />
                         <input
-                            type="password"
+                            type={showConfirmPassword ? "text" : "password"}
                             placeholder="Contraseña"
-                            name="password"
-                            value={formData.password}
+                            name="confirmPassword"
+                            value={formData.confirmPassword}
                             onChange={handleChange}
                             required
-                            autoComplete='off'
+                            autoComplete="off"
                         />
+                        <button
+                            className="showPS3"
+                            type="button"
+                            onClick={() => togglePasswordVisibility("confirmPassword")}
+                        >
+                            {showConfirmPassword ? <EyeOff /> : <Eye />}
+                        </button>
                         <a href="#">¿Olvidaste tu contraseña?</a>
                         <button type="submit">Iniciar Sesión</button>
                     </form>

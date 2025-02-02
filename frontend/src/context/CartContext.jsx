@@ -1,25 +1,29 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import { carritoService } from '../services/carritoService';
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
+    const [cartItems, setCartItems] = useState([]);
     const [cartCount, setCartCount] = useState(0);
 
-    const updateCart = async (userId) => {
+    const updateCart = useCallback(async (userId) => {
         try {
             const response = await carritoService.getCart(userId);
-            const cartItems = response.data.carrito || [];
-            const totalItems = cartItems.reduce((total, item) => total + item.cantidad, 0);
+            const items = response.data.carrito || [];
+            setCartItems(items);
+            const totalItems = items.reduce((total, item) => total + item.cantidad, 0);
             setCartCount(totalItems);
+            return items; 
         } catch (error) {
             console.error('Error al actualizar carrito:', error);
+            throw error; 
         }
-    };
+    }, []);
 
     const value = {
+        cartItems,
         cartCount,
-        setCartCount,
         updateCart
     };
 

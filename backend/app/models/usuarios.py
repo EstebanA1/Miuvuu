@@ -12,4 +12,4 @@ class Usuario(Base):
     metodo_pago = Column("metodo_pago", ARRAY(String(100)))
     rol = Column(String(50))
     favoritos = Column(ARRAY(Integer), default=[])
-    carrito_compra = Column(JSONB, default=[])
+    carrito = Column(JSONB, default=[])

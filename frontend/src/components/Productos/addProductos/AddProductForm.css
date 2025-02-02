@@ -38,11 +38,6 @@ button:disabled {
   background-color: #ccc;
 }
 
-form div {
-  margin-bottom: 5px;
-}
-
-
 body.modal-open {
   overflow: hidden;
 }

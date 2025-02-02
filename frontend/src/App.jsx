@@ -5,7 +5,7 @@ import Header from "./components/Header/Header";
 import Footer from "./components/Footer/Footer";
 import Content from "./components/Content/Content";
 import ManageUsersPage from "./components/ManageUser/Page/ManageUsersPage";
-import MyProfile from "./components/Profile/myProfile";
+import MyProfile from "./components/Profile/MyProfile";
 import ProductDetail from "./components/Productos/DetailsProduct/DetailsProduct";
 import FavoritesPage from './components/Favorites/FavoritePage';
 import { FavoritesProvider } from './context/FavoritesContext';

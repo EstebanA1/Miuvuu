@@ -28,6 +28,9 @@ const MyProfile = () => {
             const currentUser = authService.getCurrentUser();
             if (currentUser?.id) {
                 const userData = await userService.getUser(currentUser.id);
+                userData.favoritos = userData.favoritos || [];
+                userData.carrito = userData.carrito || [];
+                userData.metodo_pago = userData.metodo_pago || [];
                 setUser(userData);
                 setEditedUser(userData);
             }

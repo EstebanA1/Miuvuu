@@ -90,7 +90,7 @@ class UsuarioValidator:
             )
 
     @staticmethod
-    def validate_carrito_compra(carrito: List[Dict[str, int]]):
+    def validate_carrito(carrito: List[Dict[str, int]]):
         for item in carrito:
             if not all(key in item for key in ['producto_id', 'cantidad']):
                 raise PydanticCustomError(

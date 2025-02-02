@@ -25,7 +25,7 @@ async def get_cart(user_id: int, db: AsyncSession = Depends(get_db)):
     user = user.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    return {"carrito": user.carrito_compra}
+    return {"carrito": user.carrito}
 
 @router.post("/carrito/agregar/{product_id}", summary="Agregar producto al carrito")
 async def add_to_cart(
@@ -44,7 +44,7 @@ async def add_to_cart(
         if not user:
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
         
-        nuevo_carrito = user.carrito_compra.copy() if user.carrito_compra else []
+        nuevo_carrito = user.carrito.copy() if user.carrito else []
         encontrado = False
         
         for item in nuevo_carrito:
@@ -68,7 +68,7 @@ async def add_to_cart(
         await db.execute(
             update(Usuario)
             .where(Usuario.id == cart_item.user_id)
-            .values(carrito_compra=nuevo_carrito)
+            .values(carrito=nuevo_carrito)
         )
         await db.commit()
         
@@ -92,7 +92,7 @@ async def remove_from_cart(
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
         
         nuevo_carrito = [
-            item for item in user.carrito_compra
+            item for item in user.carrito
             if not (
                 item["producto_id"] == product_id and
                 item["color"] == cart_item.color and
@@ -103,7 +103,7 @@ async def remove_from_cart(
         await db.execute(
             update(Usuario)
             .where(Usuario.id == cart_item.user_id)
-            .values(carrito_compra=nuevo_carrito)
+            .values(carrito=nuevo_carrito)
         )
         await db.commit()
         
@@ -131,7 +131,7 @@ async def update_cart(
         
         nuevo_carrito = []
         encontrado = False
-        for item in user.carrito_compra:
+        for item in user.carrito:
             if (
                 item["producto_id"] == product_id and
                 item["color"] == cart_item.color and
@@ -147,7 +147,7 @@ async def update_cart(
         await db.execute(
             update(Usuario)
             .where(Usuario.id == cart_item.user_id)
-            .values(carrito_compra=nuevo_carrito)
+            .values(carrito=nuevo_carrito)
         )
         await db.commit()
         

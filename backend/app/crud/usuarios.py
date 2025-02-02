@@ -22,7 +22,7 @@ async def create_usuario(db: AsyncSession, usuario: UsuarioCreate):
         usuario_dict['metodo_pago'] = usuario_dict.get('metodo_pago', []) or []
         usuario_dict['rol'] = usuario_dict.get('rol', 'usuario')
         usuario_dict['favoritos'] = usuario_dict.get('favoritos', [])
-        usuario_dict['carrito_compra'] = usuario_dict.get('carrito_compra', [])
+        usuario_dict['carrito'] = usuario_dict.get('carrito', [])
 
         if not isinstance(usuario_dict['metodo_pago'], list):
             raise ValueError("El campo 'metodo_pago' debe ser una lista.")
@@ -39,9 +39,9 @@ async def create_usuario(db: AsyncSession, usuario: UsuarioCreate):
                     detail=f"Los siguientes IDs de favoritos no existen: {list(favoritos_invalidos)}"
                 )
 
-        # Validar carrito_compra
-        if usuario_dict['carrito_compra']:
-            carrito_ids = [item['producto_id'] for item in usuario_dict['carrito_compra']]
+        # Validar carrito
+        if usuario_dict['carrito']:
+            carrito_ids = [item['producto_id'] for item in usuario_dict['carrito']]
             query_carrito = select(Producto.id).filter(Producto.id.in_(carrito_ids))
             productos_carrito = await db.execute(query_carrito)
             ids_carrito_validos = {row[0] for row in productos_carrito}
@@ -63,15 +63,27 @@ async def create_usuario(db: AsyncSession, usuario: UsuarioCreate):
         print(f"Error al crear usuario: {e}")
         raise HTTPException(status_code=500, detail=f"Error interno: {e}")
 
-
+async def get_usuario_by_id(db: AsyncSession, usuario_id: int):
+    result = await db.execute(select(Usuario).filter(Usuario.id == usuario_id))
+    usuario = result.scalar_one_or_none()
+    
+    if usuario:
+        usuario.favoritos = usuario.favoritos or []
+        usuario.carrito = usuario.carrito or []
+        usuario.metodo_pago = usuario.metodo_pago or []
+    
+    return usuario
 
 async def get_usuarios(db: AsyncSession):
     result = await db.execute(select(Usuario))
-    return result.scalars().all()
-
-async def get_usuario_by_id(db: AsyncSession, usuario_id: int):
-    result = await db.execute(select(Usuario).filter(Usuario.id == usuario_id))
-    return result.scalar_one_or_none()
+    usuarios = result.scalars().all()
+    
+    for usuario in usuarios:
+        usuario.favoritos = usuario.favoritos or []
+        usuario.carrito = usuario.carrito or []
+        usuario.metodo_pago = usuario.metodo_pago or []
+    
+    return usuarios
 
 async def get_usuario_by_correo(db: AsyncSession, correo: str):
     result = await db.execute(select(Usuario).where(Usuario.correo == correo))
@@ -105,6 +117,11 @@ async def update_usuario(db: AsyncSession, usuario_id: int, usuario_update: Usua
     if usuario:
         update_data = usuario_update.dict(exclude_unset=True)
         
+        # Manejar campos de lista
+        for field in ["favoritos", "carrito", "metodo_pago"]:
+            if field in update_data and update_data[field] is None:
+                update_data[field] = []
+
         if "contraseña" in update_data:
             update_data["contraseña"] = pwd_context.hash(update_data["contraseña"])
             

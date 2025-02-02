@@ -12,6 +12,7 @@ const FavoritesPage = () => {
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
     const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -22,16 +23,44 @@ const FavoritesPage = () => {
 
     useEffect(() => {
         const fetchProducts = async () => {
+            setLoading(true);
             try {
-                const productsData = await getProductos();
-                const filteredProducts = productsData.filter(product => favorites.includes(product.id));
-                setProducts(filteredProducts);
+                // Obtener todos los productos sin paginación
+                const allProducts = [];
+                let page = 1;
+                let hasMore = true;
+
+                while (hasMore) {
+                    const response = await getProductos(`?page=${page}&limit=100`);
+                    const { products: pageProducts, total } = response;
+                    
+                    allProducts.push(...pageProducts);
+                    
+                    if (allProducts.length >= total) {
+                        hasMore = false;
+                    }
+                    page++;
+                }
+
+                // Filtrar solo los productos favoritos
+                const favoritedProducts = allProducts.filter(product => 
+                    favorites.includes(product.id)
+                );
+                
+                setProducts(favoritedProducts);
             } catch (error) {
                 console.error('Error al cargar productos:', error);
+            } finally {
+                setLoading(false);
             }
         };
 
-        fetchProducts();
+        if (favorites.length > 0) {
+            fetchProducts();
+        } else {
+            setProducts([]);
+            setLoading(false);
+        }
     }, [favorites]);
 
     const handleProductClick = (productId) => {
@@ -42,6 +71,10 @@ const FavoritesPage = () => {
         e.stopPropagation();
         toggleFavorite(product);
     };
+
+    if (loading) {
+        return <div className="favorites-page">Cargando favoritos...</div>;
+    }
 
     return (
         <div className="favorites-page">
@@ -57,8 +90,8 @@ const FavoritesPage = () => {
                             onClick={() => handleProductClick(product.id)}
                         >
                             {product.image_url && (
-                                <img 
-                                    src={product.image_url} 
+                                <img
+                                    src={product.image_url}
                                     alt={product.nombre}
                                     className="product-image"
                                 />
@@ -71,7 +104,7 @@ const FavoritesPage = () => {
                                 <IconButton
                                     className="favorite-buttonFP"
                                     onClick={(e) => handleFavoriteToggle(e, product)}
-                                    sx={{ 
+                                    sx={{
                                         color: favorites.includes(product.id) ? 'red' : 'gray',
                                         '&:hover': {
                                             color: favorites.includes(product.id) ? '#ff3333' : '#666',
