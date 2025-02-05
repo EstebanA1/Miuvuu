@@ -275,7 +275,6 @@ const AddProductForm = ({ closeModal }) => {
                       variant="contained"
                       onClick={() => setShowImageEditor(true)}
                       sx={{
-                        backgroundColor: '#BD7B4D',
                         marginRight: 1,
                         '&:hover': {
                           backgroundColor: '#a66b43'
@@ -289,7 +288,7 @@ const AddProductForm = ({ closeModal }) => {
                       variant="contained"
                       onClick={changeImage}
                       sx={{
-                        backgroundColor: '#BD7B4D',
+                        // backgroundColor: '#BD7B4D',
                         '&:hover': {
                           backgroundColor: '#a66b43'
                         }

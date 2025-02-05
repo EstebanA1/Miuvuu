@@ -208,10 +208,10 @@ const AuthModal = ({ open, onClose }) => {
                             autoComplete='off'
                         />
                         <input
-                            type={showConfirmPassword ? "text" : "password"}
+                            type={showPassword ? "text" : "password"}
                             placeholder="Contraseña"
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
+                            name="password"
+                            value={formData.password}
                             onChange={handleChange}
                             required
                             autoComplete="off"
@@ -219,9 +219,9 @@ const AuthModal = ({ open, onClose }) => {
                         <button
                             className="showPS3"
                             type="button"
-                            onClick={() => togglePasswordVisibility("confirmPassword")}
+                            onClick={() => togglePasswordVisibility("password")}
                         >
-                            {showConfirmPassword ? <EyeOff /> : <Eye />}
+                            {showPassword ? <EyeOff /> : <Eye />}
                         </button>
                         <a href="#">¿Olvidaste tu contraseña?</a>
                         <button type="submit">Iniciar Sesión</button>

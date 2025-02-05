@@ -2,95 +2,105 @@ import './ImageEditor.css';
 import 'cropperjs/dist/cropper.css';
 import Cropper from 'react-cropper';
 import React, { useState, useRef, useEffect } from 'react';
+import SaveIcon from '@mui/icons-material/Save';
+import CloseIcon from '@mui/icons-material/Close';
+import { Button } from '@mui/material';
 
 const ImageEditor = ({ image, setImage, setImageEdited, onClose }) => {
     const cropperRef = useRef(null);
-    const [brightness, setBrightness] = useState(100); // Brillo a 100 por defecto
-    const [contrast, setContrast] = useState(100); // Contraste a 100 por defecto
+    const [brightness, setBrightness] = useState(100);
+    const [contrast, setContrast] = useState(100);
     const [rotation, setRotation] = useState(0);
-    const [updatedImage, setUpdatedImage] = useState(null);
-
-    const applyFilters = () => {
-        if (!updatedImage) return;
-
-        const img = new Image();
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-
-            canvas.width = img.width;
-            canvas.height = img.height;
-
-            ctx.translate(canvas.width / 2, canvas.height / 2);
-            ctx.rotate(rotation * Math.PI / 180);
-            ctx.translate(-canvas.width / 2, -canvas.height / 2);
-
-            ctx.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
-            ctx.drawImage(img, 0, 0, img.width, img.height);
-
-            canvas.toBlob((filteredBlob) => {
-                if (filteredBlob) {
-                    setUpdatedImage(URL.createObjectURL(filteredBlob));
-                }
-            }, 'image/png');
-        };
-        img.src = updatedImage;
-    };
+    const [imageURL, setImageURL] = useState(null);
 
     useEffect(() => {
-        if (image && !updatedImage) {
-            setUpdatedImage(URL.createObjectURL(image));
+        if (image) {
+            if (typeof image === 'string') {
+                setImageURL(image);
+            } else {
+                const url = URL.createObjectURL(image);
+                setImageURL(url);
+                return () => {
+                    URL.revokeObjectURL(url);
+                };
+            }
         }
     }, [image]);
 
     useEffect(() => {
-        applyFilters();
-    }, [brightness, contrast, rotation]);
+        const cropper = cropperRef.current?.cropper;
+        if (cropper) {
+            cropper.rotateTo(rotation);
+        }
+    }, [rotation]);
 
     const handleSave = () => {
         const cropper = cropperRef.current?.cropper;
-        const croppedCanvas = cropper?.getCroppedCanvas({
-            width: 100,
-            height: 100,
-        });
+        if (cropper) {
+            const croppedCanvas = cropper.getCroppedCanvas();
+            if (!croppedCanvas) return;
 
-        if (croppedCanvas) {
-            croppedCanvas.toBlob((blob) => {
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = croppedCanvas.width;
+            finalCanvas.height = croppedCanvas.height;
+            const ctx = finalCanvas.getContext('2d');
+
+            ctx.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
+
+            if (rotation !== 0) {
+                ctx.save();
+                ctx.translate(finalCanvas.width / 2, finalCanvas.height / 2);
+                ctx.rotate((rotation * Math.PI) / 180);
+                ctx.drawImage(
+                    croppedCanvas,
+                    -croppedCanvas.width / 2,
+                    -croppedCanvas.height / 2,
+                    croppedCanvas.width,
+                    croppedCanvas.height
+                );
+                ctx.restore();
+            } else {
+                ctx.drawImage(croppedCanvas, 0, 0);
+            }
+
+            finalCanvas.toBlob((blob) => {
                 if (blob) {
-                    const filteredFile = new File([blob], 'edited-image.png', { type: 'image/png' });
-                    setImage(filteredFile);
-                    setImageEdited(true); 
-                    onClose(); 
+                    const editedFile = new File([blob], 'edited-image.png', { type: 'image/png' });
+                    setImage(editedFile);
+                    if (typeof setImageEdited === 'function') {
+                        setImageEdited(true);
+                    }
+                    onClose();
                 }
             }, 'image/png');
         }
     };
+
 
     return (
         <div className="modal image-editor-modal">
             <div className="modal-content image-editor-content">
                 <h2 className="modal-title">Editar Imagen</h2>
-                
-                {/* Nuevo div de modal-body */}
                 <div className="modal-body image-editor-body">
-                    <div className="editor-container">
+                    <div div className="editor-container">
                         <div className="image-container">
-                            <Cropper
-                                src={updatedImage || URL.createObjectURL(image)}
-                                ref={cropperRef}
-                                style={{ height: '100%', width: 'auto' }}
-                                aspectRatio={1}
-                                viewMode={1}
-                                guides={false}
-                                autoCropArea={1}
-                                responsive={true}
-                                background={false}
-                                zoomTo={false}
-                                rotateTo={rotation}
-                            />
+                            {imageURL && (
+                                <Cropper
+                                    src={imageURL}
+                                    ref={cropperRef}
+                                    style={{
+                                        height: '100%',
+                                        width: 'auto',
+                                        filter: `brightness(${brightness}%) contrast(${contrast}%)`
+                                    }}
+                                    viewMode={1}
+                                    guides={false}
+                                    autoCropArea={1}
+                                    responsive={true}
+                                    background={false}
+                                />
+                            )}
                         </div>
-                        
-                        {/* Nuevo div de slider-container */}
                         <div className="slider-container controls">
                             <div className="control brightness-control">
                                 <label>Brillo:</label>
@@ -123,8 +133,36 @@ const ImageEditor = ({ image, setImage, setImageEdited, onClose }) => {
                                 />
                             </div>
                             <div className="buttons control-buttons">
-                                <button className="save-button" onClick={handleSave}>Guardar</button>
-                                <button className="cancel-button" onClick={onClose}>Cancelar</button>
+                                <Button
+                                    variant="contained"
+                                    color="error"
+                                    startIcon={<CloseIcon />}
+                                    onClick={onClose}
+                                    sx={{
+                                        '&:hover': {
+                                            backgroundColor: '#b71c1c',
+                                        }
+                                    }}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    color="success"
+                                    endIcon={<SaveIcon />}
+                                    onClick={handleSave}
+                                    sx={{
+                                        color: 'success.main',
+                                        borderColor: 'success.main',
+                                        '&:hover': {
+                                            backgroundColor: 'rgba(46, 125, 50, 0.04)',
+                                            borderColor: '#2e7d32',
+                                            color: '#2e7d32'
+                                        }
+                                    }}
+                                >
+                                    Guardar
+                                </Button>
                             </div>
                         </div>
                     </div>

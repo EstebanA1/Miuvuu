@@ -299,7 +299,7 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                                 onClick={onCancel}
                                 sx={{
                                     '&:hover': {
-                                        backgroundColor: '#b71c1c', 
+                                        backgroundColor: '#b71c1c',
                                     }
                                 }}
                             >
@@ -314,9 +314,9 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                                     color: 'success.main',
                                     borderColor: 'success.main',
                                     '&:hover': {
-                                        backgroundColor: 'rgba(46, 125, 50, 0.04)', 
+                                        backgroundColor: 'rgba(46, 125, 50, 0.04)',
                                         borderColor: '#2e7d32',
-                                        color: '#2e7d32' 
+                                        color: '#2e7d32'
                                     }
                                 }}
                             >
@@ -342,6 +342,7 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                         onClose={() => setShowImageEditor(false)}
                     />
                 )}
+
             </div>
         </div>
     );

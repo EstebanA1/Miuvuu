@@ -10,6 +10,7 @@ import { useFavorites } from '../../../context/FavoritesContext';
 import { useCart } from '../../../context/CartContext';
 import { carritoService } from '../../../services/carritoService';
 import './DetailsProduct.css';
+import { Link as RouterLink } from 'react-router-dom';
 
 const ProductDetail = () => {
     const { id } = useParams();
@@ -122,16 +123,24 @@ const ProductDetail = () => {
         product.image_url,
     ];
 
-    const getCategoryName = () => {
-        const category = categories.find(cat => cat.id === product?.categoria_id);
-        return category ? category.nombre : '';
+    const getCategory = () => {
+        return categories.find(cat => cat.id === product?.categoria_id);
     };
+
 
     return (
         <div className="product-detail-container">
             <Breadcrumbs className="breadcrumbs">
-                <Link href="/" color="inherit">Inicio</Link>
-                <Link href="/categoria" color="inherit">{getCategoryName()}</Link>
+                <Link component={RouterLink} to="/" color="inherit">Inicio</Link>
+                {getCategory() && (
+                    <Link
+                        component={RouterLink}
+                        to={`/?category=${encodeURIComponent(getCategory().nombre)}&gender=${encodeURIComponent(getCategory().genero)}`}
+                        color="inherit"
+                    >
+                        {getCategory().nombre}
+                    </Link>
+                )}
                 <span>{product.nombre}</span>
             </Breadcrumbs>
 

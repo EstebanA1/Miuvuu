@@ -123,6 +123,15 @@ async def actualizar_producto(
 
     image_url = None
     if image:
+        db_producto_actual = await get_producto(db, producto_id)
+        if db_producto_actual and db_producto_actual.image_url:
+            old_image_path = UPLOAD_DIR / Path(db_producto_actual.image_url).name
+            if old_image_path.exists():
+                try:
+                    old_image_path.unlink()
+                except Exception as e:
+                    print(f"Error al eliminar la imagen antigua: {e}")
+
         if image.content_type not in ["image/png", "image/jpeg", "image/jpg", "image/webp"]:
             raise HTTPException(
                 status_code=400, 
@@ -162,11 +171,22 @@ async def actualizar_producto(
 
 @router.delete("/{producto_id}", response_model=Producto, responses={404: {"description": "Producto no encontrado"}})
 async def eliminar_producto(producto_id: int, db: AsyncSession = Depends(get_db)):
-    db_producto = await delete_producto(db, producto_id)
-    if not db_producto:
+    producto_a_eliminar = await get_producto(db, producto_id)
+    if not producto_a_eliminar:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Producto no encontrado"
         )
+    
+    db_producto = await delete_producto(db, producto_id)
+    
+    if producto_a_eliminar.image_url:
+        image_path = UPLOAD_DIR / Path(producto_a_eliminar.image_url).name
+        if image_path.exists():
+            try:
+                image_path.unlink()
+            except Exception as e:
+                print(f"Error al eliminar la imagen del producto: {e}")
+    
     return db_producto
 
 def generate_custom_errors(error):

@@ -81,10 +81,6 @@ export const editProduct = async (id, formData) => {
       formData.set('categoria_id', Number(formData.get('categoria_id')));
     }
 
-    for (let pair of formData.entries()) {
-      console.log(pair[0] + ': ' + pair[1]);
-    }
-
     const response = await axios.put(url, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
