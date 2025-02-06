@@ -5,7 +5,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddProductForm from "../Productos/addProductos/AddProductForm";
 import EditProductForm from "../Productos/editProductos/EditProductForm";
 import DeleteProductForm from "../Productos/deleteProductos/DeleteProductForm";
-import { getProductos } from "../../services/productos";
+import { getProductos, formatImageUrl } from "../../services/productos";
 import { authService } from "../../services/authService";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
@@ -183,7 +183,7 @@ const Content = ({ filter }) => {
                 onClick={() => handleProductClick(producto)}
                 style={{ cursor: 'pointer' }}
               >
-                {producto.image_url && <img src={producto.image_url} alt={producto.nombre} />}
+                {producto.image_url && <img src={formatImageUrl(producto.image_url)} alt={producto.nombre} />}
                 <div className="principalInfo">
                   <div className="upperSection">
                     <span className="product-name">{producto.nombre}</span>

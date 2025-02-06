@@ -99,17 +99,17 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
     handleUrlChange();
   }, []);
 
-  const toggleDarkMode = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    if (newMode) {
-      document.body.classList.add("dark-mode");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.body.classList.remove("dark-mode");
-      localStorage.setItem("theme", "light");
-    }
-  };
+  // const toggleDarkMode = () => {
+  //   const newMode = !isDarkMode;
+  //   setIsDarkMode(newMode);
+  //   if (newMode) {
+  //     document.body.classList.add("dark-mode");
+  //     localStorage.setItem("theme", "dark");
+  //   } else {
+  //     document.body.classList.remove("dark-mode");
+  //     localStorage.setItem("theme", "light");
+  //   }
+  // };
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -313,11 +313,11 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
             </IconButton>
           )}
 
-          <div className="dark-mode-toggle">
+          {/* <div className="dark-mode-toggle">
             <IconButton onClick={toggleDarkMode}>
               {isDarkMode ? <DarkModeIcon /> : <LightModeIcon />}
             </IconButton>
-          </div>
+          </div> */}
           <IconButton onClick={handleAccountClick}>
             <AccountCircleIcon />
           </IconButton>

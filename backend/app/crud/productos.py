@@ -3,14 +3,12 @@ from sqlalchemy.future import select
 from app.models.productos import Producto
 from app.schemas.productos import ProductoCreate
 from app.models.categorias import Categoria
-from sqlalchemy.future import select
 from sqlalchemy.sql import func
 
 async def get_producto(db: AsyncSession, producto_id: int):
     query = select(Producto).where(Producto.id == producto_id)
     result = await db.execute(query)
     return result.scalars().first()
-
 
 async def get_productos(db, categoria: str = None, genero: str = None, search_query: str = None, page: int = 1, limit: int = 15):
     query = select(Producto).join(Categoria)
@@ -51,7 +49,6 @@ async def create_producto(db: AsyncSession, producto: ProductoCreate):
     await db.commit()
     await db.refresh(db_producto)
     return db_producto
-
 
 async def update_producto(db: AsyncSession, producto_id: int, producto: ProductoCreate):
     query = select(Producto).where(Producto.id == producto_id)

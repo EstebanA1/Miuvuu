@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+// CartContext.js
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { carritoService } from '../services/carritoService';
 
 const CartContext = createContext();
@@ -14,12 +15,20 @@ export const CartProvider = ({ children }) => {
             setCartItems(items);
             const totalItems = items.reduce((total, item) => total + item.cantidad, 0);
             setCartCount(totalItems);
-            return items; 
+            return items;
         } catch (error) {
             console.error('Error al actualizar carrito:', error);
-            throw error; 
+            throw error;
         }
     }, []);
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            const user = JSON.parse(storedUser);
+            updateCart(user.id);
+        }
+    }, [updateCart]);
 
     const value = {
         cartItems,

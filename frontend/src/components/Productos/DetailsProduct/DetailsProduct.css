@@ -24,7 +24,6 @@
 .main-image {
     background-color: #f8f8f8;
     border-radius: 8px;
-    overflow: hidden;
 }
 
 .main-image img {
@@ -42,7 +41,6 @@
     width: 80px;
     height: 80px;
     border-radius: 4px;
-    overflow: hidden;
     cursor: pointer;
     border: 2px solid transparent;
 }

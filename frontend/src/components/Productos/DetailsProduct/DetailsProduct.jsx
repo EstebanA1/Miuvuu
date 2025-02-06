@@ -4,7 +4,7 @@ import { Breadcrumbs, Link, IconButton } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
-import { getProductoById } from '../../../services/productos';
+import { formatImageUrl, getProductoById } from '../../../services/productos';
 import { getCategorias } from '../../../services/categorias';
 import { useFavorites } from '../../../context/FavoritesContext';
 import { useCart } from '../../../context/CartContext';
@@ -95,7 +95,7 @@ const ProductDetail = () => {
                 setLoading(true);
                 const data = await getProductoById(id);
                 setProduct(data);
-                setMainImage(data.image_url);
+                setMainImage(formatImageUrl(data.image_url));
             } catch (error) {
                 setError('Error al cargar el producto');
                 console.error('Error al obtener los detalles del producto:', error);
@@ -106,6 +106,7 @@ const ProductDetail = () => {
 
         fetchProductDetails();
     }, [id]);
+
 
     if (loading) return <div className="loading-container">Cargando...</div>;
     if (error) return <div className="error-container">{error}</div>;

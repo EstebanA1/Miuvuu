@@ -111,6 +111,8 @@ const CartPage = () => {
                                 <img
                                     src={producto.image_url}
                                     alt={producto.nombre}
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => navigate(`/producto/${producto.id}`)}
                                     onError={(e) => {
                                         e.target.onerror = null;
                                         e.target.src = '/placeholder-image.jpg';

@@ -114,8 +114,6 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
 
         if (editedImageBlob) {
             formData.append("image", editedImageBlob);
-        } else if (productImage) {
-            formData.append("image", productImage);
         }
 
         try {
