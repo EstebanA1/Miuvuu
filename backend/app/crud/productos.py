@@ -75,9 +75,11 @@ async def delete_producto(db: AsyncSession, producto_id: int):
     query = select(Producto).where(Producto.id == producto_id)
     result = await db.execute(query)
     db_producto = result.scalars().first()
+    
     if not db_producto:
         print(f"Producto con ID {producto_id} no encontrado")
         return None
+
     await db.delete(db_producto)
     await db.commit()
     print(f"Producto con ID {producto_id} eliminado correctamente")

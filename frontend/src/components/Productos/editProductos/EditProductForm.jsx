@@ -90,32 +90,36 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+    
         if (!productName || !productDescription || !productPrice || !productQuantity || !productCategory) {
             alert("Por favor, complete todos los campos.");
             return;
         }
-
+    
         const selectedCategory = categories.find(
             (cat) => `${cat.genero}-${cat.nombre}` === productCategory
         );
-
+    
         if (!selectedCategory) {
             alert("La categoría seleccionada no existe. Por favor, verifica.");
             return;
         }
-
+    
         const formData = new FormData();
         formData.append("nombre", productName.trim());
         formData.append("descripcion", productDescription.trim());
         formData.append("precio", Number(productPrice));
         formData.append("cantidad", Number(productQuantity));
         formData.append("categoria_id", Number(selectedCategory.id));
-
-        if (editedImageBlob) {
-            formData.append("image", editedImageBlob);
+    
+        if (editedImageBlob || productImage) {
+            const fileToSend = editedImageBlob || productImage;
+            const file = fileToSend instanceof File
+                ? fileToSend
+                : new File([fileToSend], "edited_image.webp", { type: fileToSend.type || "image/webp" });
+            formData.append("image", file);
         }
-
+    
         try {
             const response = await editProduct(product.id, formData);
             if (response) {
@@ -131,6 +135,7 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
             }
         }
     };
+    
 
     return (
         <div className="modal">

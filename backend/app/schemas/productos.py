@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field
+import json
+from pydantic import BaseModel, Field, validator
 from typing import Optional, List
-from pydantic import validator
 
 class ProductoBase(BaseModel):
     nombre: str = Field(..., max_length=100)
@@ -15,12 +15,18 @@ class ProductoBase(BaseModel):
         if value is None:
             return value
         if isinstance(value, str):
-            return [value]
+            try:
+                parsed = json.loads(value)
+                if isinstance(parsed, list):
+                    return parsed
+                return [parsed]
+            except json.JSONDecodeError:
+                return [value]
         return value
 
     class Config:
-        from_attributes = True
-
+        from_attributes = True 
+        
 class ProductoCreate(ProductoBase):
     pass
 
