@@ -4,7 +4,7 @@ import { Breadcrumbs, Link, IconButton } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
-import { formatImageUrl, getProductoById } from '../../../services/productos';
+import { formatImageUrls, getProductoById } from '../../../services/productos';
 import { getCategorias } from '../../../services/categorias';
 import { useFavorites } from '../../../context/FavoritesContext';
 import { useCart } from '../../../context/CartContext';
@@ -38,13 +38,18 @@ const ProductDetail = () => {
             try {
                 setLoading(true);
                 const [productData, categoriesData] = await Promise.all([
-                    getProductoById(id),
+                    getProductoById(id), 
                     getCategorias()
                 ]);
 
                 setProduct(productData);
                 setCategories(categoriesData);
-                setMainImage(productData.image_url);
+
+                // Para la imagen principal, se toma la primera URL del arreglo
+                const formattedImageUrls = formatImageUrls(productData.image_url);
+                setMainImage(
+                    formattedImageUrls.length > 0 ? formattedImageUrls[0] : null
+                );
             } catch (error) {
                 setError('Error al cargar el producto');
                 console.error('Error al obtener los datos:', error);
@@ -89,28 +94,12 @@ const ProductDetail = () => {
         }
     };
 
-    useEffect(() => {
-        const fetchProductDetails = async () => {
-            try {
-                setLoading(true);
-                const data = await getProductoById(id);
-                setProduct(data);
-                setMainImage(formatImageUrl(data.image_url));
-            } catch (error) {
-                setError('Error al cargar el producto');
-                console.error('Error al obtener los detalles del producto:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchProductDetails();
-    }, [id]);
-
-
     if (loading) return <div className="loading-container">Cargando...</div>;
     if (error) return <div className="error-container">{error}</div>;
     if (!product) return <div className="not-found-container">Producto no encontrado</div>;
+
+    // Aquí nos aseguramos de tener un arreglo de URLs
+    const imageUrls = formatImageUrls(product.image_url);
 
     const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
 
@@ -120,14 +109,9 @@ const ProductDetail = () => {
         { name: 'Gris', code: '#808080' }
     ];
 
-    const additionalImages = [
-        product.image_url,
-    ];
-
     const getCategory = () => {
         return categories.find(cat => cat.id === product?.categoria_id);
     };
-
 
     return (
         <div className="product-detail-container">
@@ -148,10 +132,10 @@ const ProductDetail = () => {
             <div className="product-content">
                 <div className="product-images">
                     <div className="main-image">
-                        <img src={mainImage} alt={product.nombre} />
+                        {mainImage && <img src={mainImage} alt={product.nombre} />}
                     </div>
                     <div className="thumbnail-container">
-                        {additionalImages.map((img, index) => (
+                        {imageUrls.map((img, index) => (
                             <div
                                 key={index}
                                 className={`thumbnail ${mainImage === img ? 'active' : ''}`}
@@ -164,7 +148,6 @@ const ProductDetail = () => {
                 </div>
 
                 <div className="product-info">
-
                     <h1 className="product-title">{product.nombre}</h1>
 
                     <div className="rating">
@@ -231,8 +214,8 @@ const ProductDetail = () => {
                                 )}
                             </IconButton>
                         )}
-
                     </div>
+
                     <div className="shipping-info">
                         <LocalShippingOutlinedIcon />
                         <p>Envío gratis en pedidos superiores a $30.00</p>

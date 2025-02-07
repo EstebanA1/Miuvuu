@@ -14,12 +14,16 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
     const [productPrice, setProductPrice] = useState(product.precio);
     const [productQuantity, setProductQuantity] = useState(product.cantidad);
     const [productCategory, setProductCategory] = useState("");
-    const [productImage, setProductImage] = useState(null);
-    const [editedImageBlob, setEditedImageBlob] = useState(null);
-    const [showImageEditor, setShowImageEditor] = useState(false);
-    const [imagePreviewUrl, setImagePreviewUrl] = useState(product.image_url);
-    const fileInputRef = useRef(null);
     const [categories, setCategories] = useState([]);
+
+    // Estado para manejar las imágenes:
+    // Cada objeto tendrá: { previewUrl, file, editedBlob }
+    const [images, setImages] = useState([]);
+    // Referencia para el input file
+    const fileInputRef = useRef(null);
+    // currentImageIndex: si es null se agregará una imagen nueva; si es un número se modificará la imagen en ese índice
+    const [currentImageIndex, setCurrentImageIndex] = useState(null);
+    const [showImageEditor, setShowImageEditor] = useState(false);
 
     useEffect(() => {
         const fetchCategorias = async () => {
@@ -39,33 +43,31 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
         fetchCategorias();
     }, [product.categoria_id]);
 
+    // Inicializa el estado de imágenes con las que vienen del producto.
+    useEffect(() => {
+        if (product.image_url) {
+            const initialImages = Array.isArray(product.image_url)
+                ? product.image_url
+                : [product.image_url];
+            const imageObjs = initialImages.map(url => ({
+                previewUrl: url,
+                file: null,
+                editedBlob: null
+            }));
+            setImages(imageObjs);
+        }
+    }, [product.image_url]);
+
+    // Limpiar URLs de blob al desmontar o cuando se actualicen las imágenes
     useEffect(() => {
         return () => {
-            if (imagePreviewUrl && imagePreviewUrl.startsWith('blob:')) {
-                URL.revokeObjectURL(imagePreviewUrl);
-            }
-            if (editedImageBlob) {
-                URL.revokeObjectURL(URL.createObjectURL(editedImageBlob));
-            }
+            images.forEach(imageObj => {
+                if (imageObj.previewUrl && imageObj.previewUrl.startsWith('blob:')) {
+                    URL.revokeObjectURL(imageObj.previewUrl);
+                }
+            });
         };
-    }, [imagePreviewUrl, editedImageBlob]);
-
-    const changeImage = () => {
-        if (imagePreviewUrl && imagePreviewUrl.startsWith('blob:')) {
-            URL.revokeObjectURL(imagePreviewUrl);
-        }
-        setProductImage(null);
-        setEditedImageBlob(null);
-        setImagePreviewUrl(null);
-        setShowImageEditor(false);
-
-        setTimeout(() => {
-            if (fileInputRef.current) {
-                fileInputRef.current.value = null;
-                fileInputRef.current.click();
-            }
-        }, 0);
-    };
+    }, [images]);
 
     const onFileChange = (e) => {
         const file = e.target.files[0];
@@ -75,51 +77,114 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                 alert("Formato de imagen no soportado. Solo se permiten PNG, JPG, JPEG y WEBP.");
                 return;
             }
-
-            if (imagePreviewUrl && imagePreviewUrl.startsWith('blob:')) {
-                URL.revokeObjectURL(imagePreviewUrl);
+            const newPreviewUrl = URL.createObjectURL(file);
+            if (currentImageIndex === null) {
+                // Agregar una nueva imagen
+                setImages(prevImages => [
+                    ...prevImages,
+                    { previewUrl: newPreviewUrl, file: file, editedBlob: null }
+                ]);
+            } else {
+                // Cambiar la imagen existente en la posición currentImageIndex
+                setImages(prevImages => {
+                    const newImages = [...prevImages];
+                    if (newImages[currentImageIndex].previewUrl &&
+                        newImages[currentImageIndex].previewUrl.startsWith('blob:')) {
+                        URL.revokeObjectURL(newImages[currentImageIndex].previewUrl);
+                    }
+                    newImages[currentImageIndex] = { previewUrl: newPreviewUrl, file: file, editedBlob: null };
+                    return newImages;
+                });
             }
-
-            const newImageUrl = URL.createObjectURL(file);
-            setProductImage(file);
-            setImagePreviewUrl(newImageUrl);
-            setEditedImageBlob(null);
         }
-        e.target.value = null;
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
+
+    const handleEditImage = (index) => {
+        setCurrentImageIndex(index);
+        setShowImageEditor(true);
+    };
+
+    const handleChangeImage = (index) => {
+        setCurrentImageIndex(index);
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const handleAddImage = () => {
+        setCurrentImageIndex(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const handleImageEdited = (editedFile) => {
+        const newPreviewUrl = URL.createObjectURL(editedFile);
+        setImages(prevImages => {
+            const newImages = [...prevImages];
+            newImages[currentImageIndex] = {
+                ...newImages[currentImageIndex],
+                previewUrl: newPreviewUrl,
+                editedBlob: editedFile
+            };
+            return newImages;
+        });
+        setShowImageEditor(false);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
+
         if (!productName || !productDescription || !productPrice || !productQuantity || !productCategory) {
             alert("Por favor, complete todos los campos.");
             return;
         }
-    
+
         const selectedCategory = categories.find(
             (cat) => `${cat.genero}-${cat.nombre}` === productCategory
         );
-    
+
         if (!selectedCategory) {
             alert("La categoría seleccionada no existe. Por favor, verifica.");
             return;
         }
-    
+
         const formData = new FormData();
         formData.append("nombre", productName.trim());
         formData.append("descripcion", productDescription.trim());
         formData.append("precio", Number(productPrice));
         formData.append("cantidad", Number(productQuantity));
         formData.append("categoria_id", Number(selectedCategory.id));
-    
-        if (editedImageBlob || productImage) {
-            const fileToSend = editedImageBlob || productImage;
-            const file = fileToSend instanceof File
-                ? fileToSend
-                : new File([fileToSend], "edited_image.webp", { type: fileToSend.type || "image/webp" });
-            formData.append("image", file);
+
+        // ---------------------------------------------------------
+        // Envío de imágenes:
+        //
+        // 1. Se envían las imágenes nuevas o modificadas (con file o editedBlob).
+        // 2. Se envían las imágenes existentes (que no fueron modificadas) en un campo extra.
+        // ---------------------------------------------------------
+
+        // Recopilar las imágenes que ya existen (sin file ni blob editado)
+        const existingImageUrls = images
+            .filter(img => !img.file && !img.editedBlob)
+            .map(img => img.previewUrl);
+        if (existingImageUrls.length > 0) {
+            formData.append("existing_images", JSON.stringify(existingImageUrls));
         }
-    
+
+        // Recorrer el arreglo de imágenes y agregar las nuevas o modificadas
+        images.forEach(imageObj => {
+            if (imageObj.file || imageObj.editedBlob) {
+                const fileToSend = imageObj.editedBlob || imageObj.file;
+                const file = fileToSend instanceof File
+                    ? fileToSend
+                    : new File([fileToSend], "edited_image.webp", { type: fileToSend.type || "image/webp" });
+                formData.append("image", file);
+            }
+        });
+
         try {
             const response = await editProduct(product.id, formData);
             if (response) {
@@ -135,7 +200,6 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
             }
         }
     };
-    
 
     return (
         <div className="modal">
@@ -145,6 +209,7 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                 </div>
                 <div className="modal-body add-product-body">
                     <form onSubmit={handleSubmit} encType="multipart/form-data">
+                        {/* Campos de texto y categoría (sin cambios) */}
                         <div>
                             <TextField
                                 label="Nombre del Producto"
@@ -153,13 +218,9 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                                 fullWidth
                                 variant="outlined"
                                 margin="normal"
-                                sx={{
-                                    marginTop: '5px',
-                                    marginBottom: '5px'
-                                }}
+                                sx={{ marginTop: '5px', marginBottom: '5px' }}
                             />
                         </div>
-
                         <div>
                             <TextField
                                 label="Descripción"
@@ -171,13 +232,9 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                                 variant="outlined"
                                 margin="normal"
                                 helperText={`${productDescription.length}/500`}
-                                sx={{
-                                    marginTop: '5px',
-                                    marginBottom: '5px'
-                                }}
+                                sx={{ marginTop: '5px', marginBottom: '5px' }}
                             />
                         </div>
-
                         <div>
                             <TextField
                                 label="Precio USD"
@@ -187,13 +244,9 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                                 fullWidth
                                 variant="outlined"
                                 margin="normal"
-                                sx={{
-                                    marginTop: '5px',
-                                    marginBottom: '5px'
-                                }}
+                                sx={{ marginTop: '5px', marginBottom: '5px' }}
                             />
                         </div>
-
                         <div>
                             <TextField
                                 label="Cantidad"
@@ -203,13 +256,9 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                                 fullWidth
                                 variant="outlined"
                                 margin="normal"
-                                sx={{
-                                    marginTop: '5px',
-                                    marginBottom: '5px'
-                                }}
+                                sx={{ marginTop: '5px', marginBottom: '5px' }}
                             />
                         </div>
-
                         <div className="category">
                             <Autocomplete
                                 options={categories.sort((a, b) => {
@@ -240,58 +289,55 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                             />
                         </div>
 
+                        {/* Sección de carga de imágenes */}
                         <div className="image-upload-section">
-                            {!imagePreviewUrl && (
-                                <div>
-                                    <div className="file-input-wrapper">
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={onFileChange}
-                                            accept="image/png, image/jpeg, image/jpg, image/webp"
-                                            style={{ display: 'none' }}
-                                        />
-                                        <Button
-                                            variant="contained"
-                                            onClick={() => fileInputRef.current?.click()}
-                                            sx={{
-                                                backgroundColor: '#1976d2',
-                                                '&:hover': {
-                                                    backgroundColor: '#1565c0'
-                                                }
+                            {/* Input file oculto */}
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={onFileChange}
+                                accept="image/png, image/jpeg, image/jpg, image/webp"
+                                style={{ display: 'none' }}
+                            />
+
+                            {/* Mostrar las imágenes actuales */}
+                            <div className="images-preview-container">
+                                {images.map((imageObj, index) => (
+                                    <div key={index} className="form-image-preview">
+                                        <img
+                                            src={imageObj.previewUrl}
+                                            alt={`Vista previa ${index + 1}`}
+                                            onClick={() => {
+                                                setCurrentImageIndex(index);
+                                                setShowImageEditor(true);
                                             }}
-                                        >
-                                            Seleccionar imagen
-                                        </Button>
+                                            style={{ cursor: 'pointer' }}
+                                        />
+                                        <div className="img-btn">
+                                            <Button
+                                                variant="contained"
+                                                onClick={() => handleEditImage(index)}
+                                                sx={{ mr: 1 }}
+                                            >
+                                                Modificar
+                                            </Button>
+                                            <Button
+                                                variant="contained"
+                                                onClick={() => handleChangeImage(index)}
+                                            >
+                                                Cambiar
+                                            </Button>
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                ))}
+                            </div>
 
-                            {imagePreviewUrl && (
-                                <div className="form-image-preview">
-                                    <img
-                                        src={imagePreviewUrl}
-                                        alt="Vista previa"
-                                        onClick={() => setShowImageEditor(true)}
-                                    />
-                                    <div className="img-btn">
-                                        <Button
-                                            variant="contained"
-                                            onClick={() => setShowImageEditor(true)}
-                                            sx={{ mr: 1 }}
-                                        >
-                                            Modificar
-                                        </Button>
-
-                                        <Button
-                                            variant="contained"
-                                            onClick={changeImage}
-                                        >
-                                            Cambiar
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
+                            {/* Botón para añadir imagen nueva */}
+                            <div className="add-image-button">
+                                <Button variant="contained" onClick={handleAddImage}>
+                                    Añadir imagen
+                                </Button>
+                            </div>
                         </div>
 
                         <div className="form-buttons">
@@ -301,9 +347,7 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                                 startIcon={<CloseIcon />}
                                 onClick={onCancel}
                                 sx={{
-                                    '&:hover': {
-                                        backgroundColor: '#b71c1c',
-                                    }
+                                    '&:hover': { backgroundColor: '#b71c1c' }
                                 }}
                             >
                                 Cancelar
@@ -326,26 +370,22 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                                 Guardar
                             </Button>
                         </div>
-
                     </form>
                 </div>
 
-                {showImageEditor && (
+                {/* Editor de imagen: se muestra cuando se hace clic en "Modificar" o en la imagen */}
+                {showImageEditor && currentImageIndex !== null && (
                     <ImageEditor
-                        image={editedImageBlob || productImage || imagePreviewUrl}
-                        setImage={(file) => {
-                            if (imagePreviewUrl && imagePreviewUrl.startsWith('blob:')) {
-                                URL.revokeObjectURL(imagePreviewUrl);
-                            }
-                            const newImageUrl = URL.createObjectURL(file);
-                            setEditedImageBlob(file);
-                            setImagePreviewUrl(newImageUrl);
-                        }}
+                        image={
+                            images[currentImageIndex].editedBlob ||
+                            images[currentImageIndex].file ||
+                            images[currentImageIndex].previewUrl
+                        }
+                        setImage={(file) => handleImageEdited(file)}
                         setImageEdited={true}
                         onClose={() => setShowImageEditor(false)}
                     />
                 )}
-
             </div>
         </div>
     );

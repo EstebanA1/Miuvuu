@@ -13,7 +13,8 @@ const AddProductForm = ({ closeModal }) => {
   const [productPrice, setProductPrice] = useState("");
   const [productQuantity, setProductQuantity] = useState("");
   const [productCategory, setProductCategory] = useState("");
-  const [productImage, setProductImage] = useState(null);
+
+  const [selectedImages, setSelectedImages] = useState([]);
   const [editedImageBlob, setEditedImageBlob] = useState(null);
 
   const [categories, setCategories] = useState([]);
@@ -34,20 +35,34 @@ const AddProductForm = ({ closeModal }) => {
 
   useEffect(() => {
     return () => {
-      if (productImage) {
-        URL.revokeObjectURL(URL.createObjectURL(productImage));
-      }
+      selectedImages.forEach(file => URL.revokeObjectURL(URL.createObjectURL(file)));
       if (editedImageBlob) {
         URL.revokeObjectURL(URL.createObjectURL(editedImageBlob));
       }
     };
-  }, [productImage, editedImageBlob]);
+  }, [selectedImages, editedImageBlob]);
+
+  const onFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length) {
+      const validFormats = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+      for (const file of files) {
+        if (!validFormats.includes(file.type)) {
+          alert("Formato de imagen no soportado. Solo se permiten PNG, JPG, JPEG y WEBP.");
+          return;
+        }
+      }
+      setSelectedImages(files);
+      setEditedImageBlob(null);
+      setShowImageEditor(false);
+    }
+    e.target.value = null;
+  };
 
   const changeImage = () => {
-    setProductImage(null);
+    setSelectedImages([]);
     setEditedImageBlob(null);
     setShowImageEditor(false);
-
     setTimeout(() => {
       if (fileInputRef.current) {
         fileInputRef.current.value = null;
@@ -56,34 +71,13 @@ const AddProductForm = ({ closeModal }) => {
     }, 0);
   };
 
-  const onFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const validFormats = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-      if (!validFormats.includes(file.type)) {
-        alert("Formato de imagen no soportado. Solo se permiten PNG, JPG, JPEG y WEBP.");
-        return;
-      }
-
-      if (productImage) {
-        URL.revokeObjectURL(URL.createObjectURL(productImage));
-      }
-
-      setProductImage(file);
-      setEditedImageBlob(null);
-      setShowImageEditor(false);
-    }
-
-    e.target.value = null;
-  };
-
   const resetForm = () => {
     setProductName("");
     setProductDescription("");
     setProductPrice("");
     setProductQuantity("");
     setProductCategory("");
-    setProductImage(null);
+    setSelectedImages([]);
     setEditedImageBlob(null);
   };
 
@@ -96,36 +90,37 @@ const AddProductForm = ({ closeModal }) => {
       !productPrice ||
       !productQuantity ||
       !productCategory ||
-      (!productImage && !editedImageBlob)
+      selectedImages.length === 0
     ) {
       alert("Por favor, complete todos los campos.");
       return;
     }
 
-    const selectedCategory = categories.find(
+    const selectedCat = categories.find(
       (cat) => `${cat.genero}-${cat.nombre}` === productCategory
     );
-
-    if (!selectedCategory) {
+    if (!selectedCat) {
       alert("La categoría seleccionada no existe. Por favor, verifica.");
       return;
     }
 
-    const productData = {
-      nombre: productName,
-      descripcion: productDescription,
-      precio: productPrice,
-      cantidad: productQuantity,
-      categoria_id: selectedCategory.id,
-      image_url: productImage,
-    };
+    const formData = new FormData();
+    formData.append("nombre", productName);
+    formData.append("descripcion", productDescription);
+    formData.append("precio", productPrice);
+    formData.append("cantidad", productQuantity);
+    formData.append("categoria_id", selectedCat.id);
 
-    console.log("Datos del producto:", productData);
+    formData.append("image", editedImageBlob || selectedImages[0]);
+
+    if (selectedImages.length > 1) {
+      selectedImages.slice(1).forEach((file) => {
+        formData.append("additional_images", file);
+      });
+    }
 
     try {
-      const response = await addProduct(productData);
-      console.log("Respuesta del servidor:", response);
-
+      const response = await addProduct(formData);
       if (response.image_url) {
         alert("Producto creado exitosamente.");
         resetForm();
@@ -139,11 +134,10 @@ const AddProductForm = ({ closeModal }) => {
     }
   };
 
-
   return (
     <div className="modal">
       <div className="modal-addProduct-content">
-        <h2 className='title-form'>Agregar Producto</h2>
+        <h2 className="title-form">Agregar Producto</h2>
 
         <div className="modal-body add-product-body">
           <form onSubmit={handleSubmit} encType="multipart/form-data">
@@ -155,10 +149,7 @@ const AddProductForm = ({ closeModal }) => {
                 fullWidth
                 variant="outlined"
                 margin="normal"
-                sx={{
-                  marginTop: '5px',
-                  marginBottom: '5px'
-                }}
+                sx={{ marginTop: "5px", marginBottom: "5px" }}
               />
             </div>
 
@@ -173,10 +164,7 @@ const AddProductForm = ({ closeModal }) => {
                 variant="outlined"
                 margin="normal"
                 helperText={`${productDescription.length}/500`}
-                sx={{
-                  marginTop: '5px',
-                  marginBottom: '5px'
-                }}
+                sx={{ marginTop: "5px", marginBottom: "5px" }}
               />
             </div>
 
@@ -189,10 +177,7 @@ const AddProductForm = ({ closeModal }) => {
                 fullWidth
                 variant="outlined"
                 margin="normal"
-                sx={{
-                  marginTop: '5px',
-                  marginBottom: '5px'
-                }}
+                sx={{ marginTop: "5px", marginBottom: "5px" }}
               />
             </div>
 
@@ -205,22 +190,19 @@ const AddProductForm = ({ closeModal }) => {
                 fullWidth
                 variant="outlined"
                 margin="normal"
-                sx={{
-                  marginTop: '5px',
-                  marginBottom: '5px'
-                }}
+                sx={{ marginTop: "5px", marginBottom: "5px" }}
               />
             </div>
 
-            <div className='category'>
+            <div className="category">
               <Autocomplete
                 options={categories.sort((a, b) => {
                   if (a.genero === b.genero) {
                     return a.nombre.localeCompare(b.nombre);
                   }
-                  return a.genero === 'Hombre' ? -1 : 1;
+                  return a.genero === "Hombre" ? -1 : 1;
                 })}
-                getOptionLabel={(option) => `${option.genero}, ${option.nombre}`}
+                getOptionLabel={(option) => `${option.genero}-${option.nombre}`}
                 value={
                   categories.find(
                     (cat) => `${cat.genero}-${cat.nombre}` === productCategory
@@ -243,7 +225,7 @@ const AddProductForm = ({ closeModal }) => {
             </div>
 
             <div className="image-upload-section">
-              {!productImage && (
+              {selectedImages.length === 0 ? (
                 <div>
                   <div className="file-input-wrapper">
                     <input
@@ -251,47 +233,45 @@ const AddProductForm = ({ closeModal }) => {
                       ref={fileInputRef}
                       onChange={onFileChange}
                       accept="image/png, image/jpeg, image/jpg, image/webp"
-                      style={{ display: 'none' }}
+                      multiple
+                      style={{ display: "none" }}
                     />
-                    <Button
-                      variant="contained"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      Seleccionar imagen
+                    <Button variant="contained" onClick={() => fileInputRef.current?.click()}>
+                      Seleccionar imagenes
                     </Button>
                   </div>
                 </div>
-              )}
-
-              {productImage && (
+              ) : (
                 <div className="form-image-preview">
                   <img
-                    src={URL.createObjectURL(editedImageBlob || productImage)}
+                    src={URL.createObjectURL(editedImageBlob || selectedImages[0])}
                     alt="Vista previa"
                     onClick={() => setShowImageEditor(true)}
                   />
+                  {selectedImages.length > 1 &&
+                    selectedImages.slice(1).map((file, idx) => (
+                      <img
+                        key={idx}
+                        src={URL.createObjectURL(file)}
+                        alt={`Adicional ${idx + 1}`}
+                      />
+                    ))}
                   <div className="img-btn">
                     <Button
                       variant="contained"
                       onClick={() => setShowImageEditor(true)}
                       sx={{
                         marginRight: 1,
-                        '&:hover': {
-                          backgroundColor: '#a66b43'
-                        }
+                        "&:hover": { backgroundColor: "#a66b43" },
                       }}
                     >
                       Modificar
                     </Button>
-
                     <Button
                       variant="contained"
                       onClick={changeImage}
                       sx={{
-                        // backgroundColor: '#BD7B4D',
-                        '&:hover': {
-                          backgroundColor: '#a66b43'
-                        }
+                        "&:hover": { backgroundColor: "#a66b43" },
                       }}
                     >
                       Cambiar
@@ -308,9 +288,7 @@ const AddProductForm = ({ closeModal }) => {
                 onClick={closeModal}
                 startIcon={<CloseIcon />}
                 sx={{
-                  '&:hover': {
-                    backgroundColor: '#b71c1c',
-                  }
+                  "&:hover": { backgroundColor: "#b71c1c" },
                 }}
               >
                 Cancelar
@@ -321,13 +299,13 @@ const AddProductForm = ({ closeModal }) => {
                 type="submit"
                 endIcon={<SaveIcon />}
                 sx={{
-                  color: 'success.main',
-                  borderColor: 'success.main',
-                  '&:hover': {
-                    backgroundColor: 'rgba(46, 125, 50, 0.04)',
-                    borderColor: '#2e7d32',
-                    color: '#2e7d32'
-                  }
+                  color: "success.main",
+                  borderColor: "success.main",
+                  "&:hover": {
+                    backgroundColor: "rgba(46, 125, 50, 0.04)",
+                    borderColor: "#2e7d32",
+                    color: "#2e7d32",
+                  },
                 }}
               >
                 Subir Producto
@@ -338,10 +316,9 @@ const AddProductForm = ({ closeModal }) => {
 
         {showImageEditor && (
           <ImageEditor
-            image={editedImageBlob || productImage}
+            image={editedImageBlob || selectedImages[0]}
             setImage={(file) => {
               setEditedImageBlob(file);
-              setProductImage(file);
             }}
             setImageEdited={true}
             onClose={() => setShowImageEditor(false)}

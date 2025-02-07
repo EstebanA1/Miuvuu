@@ -27,11 +27,38 @@ export const formatImageUrl = (imageUrl) => {
   }
 };
 
-const formatProductData = (product) => {
-  return {
-    ...product,
-    image_url: formatImageUrl(product.image_url)
-  };
+export const formatImageUrls = (imageUrls) => {
+  if (!imageUrls) return [];
+  let urls = imageUrls;
+  if (typeof urls === "string") {
+    try {
+      const parsed = JSON.parse(urls);
+      if (Array.isArray(parsed)) {
+        urls = parsed;
+      } else {
+        urls = [urls];
+      }
+    } catch (e) {
+      urls = [urls];
+    }
+  }
+  return urls.map((url) => {
+    if (url.startsWith("http")) return url;
+    if (url.includes("/CarpetasDeProductos/")) {
+      return encodeURI(`${API_BASE_URL}${url}`);
+    } else {
+      const parts = url.split("/");
+      const filename = parts.pop();
+      let folder;
+      if (filename.includes("_")) {
+        folder = filename.split("_")[0];
+      } else {
+        folder = filename.split(".")[0];
+      }
+      const newUrl = `/uploads/CarpetasDeProductos/${folder}/${filename}`;
+      return encodeURI(`${API_BASE_URL}${newUrl}`);
+    }
+  });
 };
 
 export const getProductos = async (query = "") => {
@@ -54,18 +81,39 @@ export const getProductos = async (query = "") => {
 
 export const getProductoById = async (id) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/productos/${id}`);
+    const response = await axios.get(`${API_URL}${id}`);
     if (!response.data) {
       throw new Error("El producto no existe o no se pudo obtener.");
     }
-    return formatProductData(response.data);
+    const product = response.data;
+    
+    if (Array.isArray(product.image_url)) {
+      product.image_url = formatImageUrls(product.image_url);
+    } else {
+      product.image_url = [formatImageUrl(product.image_url)];
+    }
+    
+    return product;
   } catch (error) {
     console.error("Error al obtener el producto:", error);
     throw error.response?.data || error;
   }
 };
 
+
+
 export const addProduct = async (product) => {
+  if (product instanceof FormData) {
+    try {
+      const response = await axios.post(API_URL, product, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  }
+  
   const formData = new FormData();
   formData.append("nombre", product.nombre);
   formData.append("descripcion", product.descripcion);
@@ -104,8 +152,12 @@ export const editProduct = async (id, formData) => {
     });
 
     const data = response.data;
+    // En lugar de usar formatImageUrl (que extrae solo la primera imagen),
+    // comprobamos si image_url es un arreglo y, en ese caso, formateamos todas las imágenes.
     if (data.image_url) {
-      data.image_url = formatImageUrl(data.image_url);
+      data.image_url = Array.isArray(data.image_url)
+        ? formatImageUrls(data.image_url)
+        : [formatImageUrl(data.image_url)];
     }
 
     return data;
@@ -117,6 +169,7 @@ export const editProduct = async (id, formData) => {
     throw error;
   }
 };
+
 
 export const deleteProduct = async (id) => {
   try {
