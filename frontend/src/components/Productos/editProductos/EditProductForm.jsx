@@ -1,12 +1,14 @@
 import './EditProductForm.css';
 import React, { useState, useEffect, useRef } from "react";
-import { TextField, Autocomplete } from "@mui/material";
+import { TextField, Autocomplete, Button } from "@mui/material";
 import ImageEditor from '../ImageEditor/ImageEditor';
 import { getCategorias } from '../../../services/categorias';
-import { editProduct } from '../../../services/productos';
-import Button from "@mui/material/Button";
+import { editProduct, formatImageUrls } from '../../../services/productos';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 
 const EditProductForm = ({ product, onUpdate, onCancel }) => {
     const [productName, setProductName] = useState(product.nombre);
@@ -15,14 +17,9 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
     const [productQuantity, setProductQuantity] = useState(product.cantidad);
     const [productCategory, setProductCategory] = useState("");
     const [categories, setCategories] = useState([]);
-
-    // Estado para manejar las imágenes:
-    // Cada objeto tendrá: { previewUrl, file, editedBlob }
     const [images, setImages] = useState([]);
-    // Referencia para el input file
+    const [selectedImageIndex, setSelectedImageIndex] = useState(null);
     const fileInputRef = useRef(null);
-    // currentImageIndex: si es null se agregará una imagen nueva; si es un número se modificará la imagen en ese índice
-    const [currentImageIndex, setCurrentImageIndex] = useState(null);
     const [showImageEditor, setShowImageEditor] = useState(false);
 
     useEffect(() => {
@@ -43,12 +40,21 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
         fetchCategorias();
     }, [product.categoria_id]);
 
-    // Inicializa el estado de imágenes con las que vienen del producto.
     useEffect(() => {
         if (product.image_url) {
-            const initialImages = Array.isArray(product.image_url)
-                ? product.image_url
-                : [product.image_url];
+            console.log("raw product.image_url:", product.image_url);
+            let initialImages = [];
+            if (Array.isArray(product.image_url)) {
+                initialImages = formatImageUrls(product.image_url);
+            } else if (typeof product.image_url === 'string') {
+                try {
+                    const parsed = JSON.parse(product.image_url);
+                    initialImages = formatImageUrls(parsed);
+                } catch (e) {
+                    initialImages = formatImageUrls([product.image_url]);
+                }
+            }
+            console.log("Initial images:", initialImages);
             const imageObjs = initialImages.map(url => ({
                 previewUrl: url,
                 file: null,
@@ -58,7 +64,7 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
         }
     }, [product.image_url]);
 
-    // Limpiar URLs de blob al desmontar o cuando se actualicen las imágenes
+
     useEffect(() => {
         return () => {
             images.forEach(imageObj => {
@@ -78,23 +84,18 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                 return;
             }
             const newPreviewUrl = URL.createObjectURL(file);
-            if (currentImageIndex === null) {
-                // Agregar una nueva imagen
-                setImages(prevImages => [
-                    ...prevImages,
-                    { previewUrl: newPreviewUrl, file: file, editedBlob: null }
-                ]);
-            } else {
-                // Cambiar la imagen existente en la posición currentImageIndex
+
+            if (selectedImageIndex !== null && selectedImageIndex < images.length) {
                 setImages(prevImages => {
                     const newImages = [...prevImages];
-                    if (newImages[currentImageIndex].previewUrl &&
-                        newImages[currentImageIndex].previewUrl.startsWith('blob:')) {
-                        URL.revokeObjectURL(newImages[currentImageIndex].previewUrl);
+                    if (newImages[selectedImageIndex].previewUrl?.startsWith('blob:')) {
+                        URL.revokeObjectURL(newImages[selectedImageIndex].previewUrl);
                     }
-                    newImages[currentImageIndex] = { previewUrl: newPreviewUrl, file: file, editedBlob: null };
+                    newImages[selectedImageIndex] = { previewUrl: newPreviewUrl, file: file, editedBlob: null };
                     return newImages;
                 });
+            } else if (images.length < 6) {
+                setImages(prevImages => [...prevImages, { previewUrl: newPreviewUrl, file: file, editedBlob: null }]);
             }
         }
         if (fileInputRef.current) {
@@ -102,22 +103,31 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
         }
     };
 
-    const handleEditImage = (index) => {
-        setCurrentImageIndex(index);
-        setShowImageEditor(true);
-    };
+    const handleImageAction = (action) => {
+        if (selectedImageIndex === null) return;
 
-    const handleChangeImage = (index) => {
-        setCurrentImageIndex(index);
-        if (fileInputRef.current) {
-            fileInputRef.current.click();
-        }
-    };
-
-    const handleAddImage = () => {
-        setCurrentImageIndex(null);
-        if (fileInputRef.current) {
-            fileInputRef.current.click();
+        switch (action) {
+            case 'edit':
+                setShowImageEditor(true);
+                break;
+            case 'change':
+                if (fileInputRef.current) {
+                    fileInputRef.current.click();
+                }
+                break;
+            case 'delete':
+                setImages(prevImages => {
+                    const newImages = [...prevImages];
+                    if (newImages[selectedImageIndex].previewUrl?.startsWith('blob:')) {
+                        URL.revokeObjectURL(newImages[selectedImageIndex].previewUrl);
+                    }
+                    newImages.splice(selectedImageIndex, 1);
+                    return newImages;
+                });
+                setSelectedImageIndex(null);
+                break;
+            default:
+                break;
         }
     };
 
@@ -125,14 +135,26 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
         const newPreviewUrl = URL.createObjectURL(editedFile);
         setImages(prevImages => {
             const newImages = [...prevImages];
-            newImages[currentImageIndex] = {
-                ...newImages[currentImageIndex],
+            newImages[selectedImageIndex] = {
+                ...newImages[selectedImageIndex],
                 previewUrl: newPreviewUrl,
                 editedBlob: editedFile
             };
             return newImages;
         });
         setShowImageEditor(false);
+    };
+
+    const handleImageSelect = (index) => {
+        setSelectedImageIndex(selectedImageIndex === index ? null : index);
+    };
+
+    const handleAddImage = () => {
+        if (images.length < 6) {
+            if (fileInputRef.current) {
+                fileInputRef.current.click();
+            }
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -159,29 +181,20 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
         formData.append("cantidad", Number(productQuantity));
         formData.append("categoria_id", Number(selectedCategory.id));
 
-        // ---------------------------------------------------------
-        // Envío de imágenes:
-        //
-        // 1. Se envían las imágenes nuevas o modificadas (con file o editedBlob).
-        // 2. Se envían las imágenes existentes (que no fueron modificadas) en un campo extra.
-        // ---------------------------------------------------------
-
-        // Recopilar las imágenes que ya existen (sin file ni blob editado)
         const existingImageUrls = images
             .filter(img => !img.file && !img.editedBlob)
             .map(img => img.previewUrl);
-        if (existingImageUrls.length > 0) {
-            formData.append("existing_images", JSON.stringify(existingImageUrls));
-        }
 
-        // Recorrer el arreglo de imágenes y agregar las nuevas o modificadas
+        console.log("existingImageUrls:", existingImageUrls); // Ver qué contiene
+
+        formData.append("existing_images", JSON.stringify(existingImageUrls));
+
         images.forEach(imageObj => {
             if (imageObj.file || imageObj.editedBlob) {
                 const fileToSend = imageObj.editedBlob || imageObj.file;
-                const file = fileToSend instanceof File
-                    ? fileToSend
-                    : new File([fileToSend], "edited_image.webp", { type: fileToSend.type || "image/webp" });
-                formData.append("image", file);
+                if (fileToSend) {
+                    formData.append("images", fileToSend);
+                }
             }
         });
 
@@ -204,61 +217,54 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
     return (
         <div className="modal">
             <div className="modal-editProduct-content">
-                <div>
-                    <h2 className="title-form">Editar Producto</h2>
-                </div>
-                <div className="modal-body add-product-body">
+                <h2 className="title-form">Editar Producto</h2>
+                <div className="add-product-body">
                     <form onSubmit={handleSubmit} encType="multipart/form-data">
-                        {/* Campos de texto y categoría (sin cambios) */}
-                        <div>
-                            <TextField
-                                label="Nombre del Producto"
-                                value={productName}
-                                onChange={(e) => setProductName(e.target.value)}
-                                fullWidth
-                                variant="outlined"
-                                margin="normal"
-                                sx={{ marginTop: '5px', marginBottom: '5px' }}
-                            />
-                        </div>
-                        <div>
-                            <TextField
-                                label="Descripción"
-                                value={productDescription}
-                                onChange={(e) => setProductDescription(e.target.value)}
-                                multiline
-                                rows={2}
-                                fullWidth
-                                variant="outlined"
-                                margin="normal"
-                                helperText={`${productDescription.length}/500`}
-                                sx={{ marginTop: '5px', marginBottom: '5px' }}
-                            />
-                        </div>
-                        <div>
-                            <TextField
-                                label="Precio USD"
-                                type="number"
-                                value={productPrice}
-                                onChange={(e) => setProductPrice(e.target.value)}
-                                fullWidth
-                                variant="outlined"
-                                margin="normal"
-                                sx={{ marginTop: '5px', marginBottom: '5px' }}
-                            />
-                        </div>
-                        <div>
-                            <TextField
-                                label="Cantidad"
-                                type="number"
-                                value={productQuantity}
-                                onChange={(e) => setProductQuantity(e.target.value)}
-                                fullWidth
-                                variant="outlined"
-                                margin="normal"
-                                sx={{ marginTop: '5px', marginBottom: '5px' }}
-                            />
-                        </div>
+                        <TextField
+                            label="Nombre del Producto"
+                            value={productName}
+                            onChange={(e) => setProductName(e.target.value)}
+                            fullWidth
+                            variant="outlined"
+                            margin="normal"
+                            sx={{ marginTop: '5px', marginBottom: '5px' }}
+                        />
+
+                        <TextField
+                            label="Descripción"
+                            value={productDescription}
+                            onChange={(e) => setProductDescription(e.target.value)}
+                            multiline
+                            rows={2}
+                            fullWidth
+                            variant="outlined"
+                            margin="normal"
+                            helperText={`${productDescription.length}/500`}
+                            sx={{ marginTop: '5px', marginBottom: '5px' }}
+                        />
+
+                        <TextField
+                            label="Precio USD"
+                            type="number"
+                            value={productPrice}
+                            onChange={(e) => setProductPrice(e.target.value)}
+                            fullWidth
+                            variant="outlined"
+                            margin="normal"
+                            sx={{ marginTop: '5px', marginBottom: '5px' }}
+                        />
+
+                        <TextField
+                            label="Cantidad"
+                            type="number"
+                            value={productQuantity}
+                            onChange={(e) => setProductQuantity(e.target.value)}
+                            fullWidth
+                            variant="outlined"
+                            margin="normal"
+                            sx={{ marginTop: '5px', marginBottom: '5px' }}
+                        />
+
                         <div className="category">
                             <Autocomplete
                                 options={categories.sort((a, b) => {
@@ -267,12 +273,10 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                                     }
                                     return a.genero === 'Hombre' ? -1 : 1;
                                 })}
-                                getOptionLabel={(option) => `${option.genero}, ${option.nombre}`}
-                                value={
-                                    categories.find(
-                                        (cat) => `${cat.genero}-${cat.nombre}` === productCategory
-                                    ) || null
-                                }
+                                getOptionLabel={(option) => `${option.genero}-${option.nombre}`}
+                                value={categories.find(
+                                    (cat) => `${cat.genero}-${cat.nombre}` === productCategory
+                                ) || null}
                                 onChange={(event, newValue) => {
                                     if (newValue) {
                                         setProductCategory(`${newValue.genero}-${newValue.nombre}`);
@@ -289,9 +293,64 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                             />
                         </div>
 
-                        {/* Sección de carga de imágenes */}
-                        <div className="image-upload-section">
-                            {/* Input file oculto */}
+                        <div className="image-section">
+                            <div className="image-grid">
+                                {images.map((imageObj, index) => (
+                                    <div
+                                        key={index}
+                                        className={`image-slot filled ${selectedImageIndex === index ? 'selected' : ''}`}
+                                        onClick={() => handleImageSelect(index)}
+                                    >
+                                        <img
+                                            src={imageObj.previewUrl}
+                                            alt={`Imagen ${index + 1}`}
+                                            className="slot-image"
+                                        />
+                                    </div>
+                                ))}
+
+                                {Array.from({ length: 6 - images.length }).map((_, idx) => (
+                                    <div
+                                        key={`empty-${idx}`}
+                                        className="image-slot"
+                                        onClick={handleAddImage}
+                                    >
+                                        <span className="slot-plus">+</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="image-actions-panel">
+                                <Button
+                                    variant="contained"
+                                    size="small"
+                                    disabled={selectedImageIndex === null}
+                                    onClick={() => handleImageAction('edit')}
+                                    startIcon={<EditIcon />}
+                                >
+                                    Modificar
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    size="small"
+                                    disabled={selectedImageIndex === null}
+                                    onClick={() => handleImageAction('change')}
+                                    startIcon={<AddPhotoAlternateIcon />}
+                                >
+                                    Cambiar
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    color="error"
+                                    size="small"
+                                    disabled={selectedImageIndex === null}
+                                    onClick={() => handleImageAction('delete')}
+                                    startIcon={<DeleteIcon />}
+                                >
+                                    Eliminar
+                                </Button>
+                            </div>
+
                             <input
                                 type="file"
                                 ref={fileInputRef}
@@ -299,64 +358,25 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                                 accept="image/png, image/jpeg, image/jpg, image/webp"
                                 style={{ display: 'none' }}
                             />
-
-                            {/* Mostrar las imágenes actuales */}
-                            <div className="images-preview-container">
-                                {images.map((imageObj, index) => (
-                                    <div key={index} className="form-image-preview">
-                                        <img
-                                            src={imageObj.previewUrl}
-                                            alt={`Vista previa ${index + 1}`}
-                                            onClick={() => {
-                                                setCurrentImageIndex(index);
-                                                setShowImageEditor(true);
-                                            }}
-                                            style={{ cursor: 'pointer' }}
-                                        />
-                                        <div className="img-btn">
-                                            <Button
-                                                variant="contained"
-                                                onClick={() => handleEditImage(index)}
-                                                sx={{ mr: 1 }}
-                                            >
-                                                Modificar
-                                            </Button>
-                                            <Button
-                                                variant="contained"
-                                                onClick={() => handleChangeImage(index)}
-                                            >
-                                                Cambiar
-                                            </Button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Botón para añadir imagen nueva */}
-                            <div className="add-image-button">
-                                <Button variant="contained" onClick={handleAddImage}>
-                                    Añadir imagen
-                                </Button>
-                            </div>
                         </div>
 
                         <div className="form-buttons">
                             <Button
                                 variant="contained"
                                 color="error"
-                                startIcon={<CloseIcon />}
                                 onClick={onCancel}
+                                startIcon={<CloseIcon />}
                                 sx={{
                                     '&:hover': { backgroundColor: '#b71c1c' }
                                 }}
                             >
                                 Cancelar
                             </Button>
+
                             <Button
                                 variant="outlined"
-                                color="success"
-                                endIcon={<SaveIcon />}
                                 type="submit"
+                                endIcon={<SaveIcon />}
                                 sx={{
                                     color: 'success.main',
                                     borderColor: 'success.main',
@@ -373,15 +393,14 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                     </form>
                 </div>
 
-                {/* Editor de imagen: se muestra cuando se hace clic en "Modificar" o en la imagen */}
-                {showImageEditor && currentImageIndex !== null && (
+                {showImageEditor && selectedImageIndex !== null && (
                     <ImageEditor
                         image={
-                            images[currentImageIndex].editedBlob ||
-                            images[currentImageIndex].file ||
-                            images[currentImageIndex].previewUrl
+                            images[selectedImageIndex].editedBlob ||
+                            images[selectedImageIndex].file ||
+                            images[selectedImageIndex].previewUrl
                         }
-                        setImage={(file) => handleImageEdited(file)}
+                        setImage={handleImageEdited}
                         setImageEdited={true}
                         onClose={() => setShowImageEditor(false)}
                     />

@@ -3,6 +3,7 @@ import axios from "axios";
 const API_URL = "http://127.0.0.1:8000/api/productos/";
 const API_BASE_URL = "http://127.0.0.1:8000";
 
+
 export const formatImageUrl = (imageUrl) => {
   if (!imageUrl) return null;
   if (Array.isArray(imageUrl)) {
@@ -31,17 +32,31 @@ export const formatImageUrls = (imageUrls) => {
   if (!imageUrls) return [];
   let urls = imageUrls;
   if (typeof urls === "string") {
+    urls = urls.trim();
+    // Si la cadena empieza con '"[' y termina con ']"', elimina la primera y la última comilla
+    if (urls.startsWith('"[') && urls.endsWith(']"')) {
+      urls = urls.substring(1, urls.length - 1);
+    }
+    // Reemplaza las comillas duplicadas por una sola
+    urls = urls.replace(/""/g, '"');
+    // Reemplaza la secuencia de '","' (posiblemente con espacios) por una coma simple
+    urls = urls.replace(/"\s*,\s*"/g, ',');
+    // Elimina las comillas al inicio y al final (si quedan)
+    urls = urls.replace(/^"+|"+$/g, '');
+    // Ahora intenta parsearlo como un arreglo JSON
     try {
-      const parsed = JSON.parse(urls);
+      const parsed = JSON.parse('[' + urls + ']');
       if (Array.isArray(parsed)) {
         urls = parsed;
       } else {
         urls = [urls];
       }
     } catch (e) {
-      urls = [urls];
+      // Si falla el JSON.parse, se hace un split manual por comas
+      urls = urls.split(',').map(s => s.trim());
     }
   }
+  // Luego formatea cada URL para agregar el API_BASE_URL si es necesario
   return urls.map((url) => {
     if (url.startsWith("http")) return url;
     if (url.includes("/CarpetasDeProductos/")) {
@@ -67,8 +82,11 @@ export const getProductos = async (query = "") => {
     const { products, total } = response.data;
     const formattedProducts = (products || []).map((producto) => ({
       ...producto,
-      image_url: formatImageUrl(producto.image_url),
+      image_url: Array.isArray(producto.image_url)
+                  ? producto.image_url
+                  : producto.image_url,
     }));
+    
     return {
       products: formattedProducts,
       total: total || formattedProducts.length,
@@ -101,7 +119,6 @@ export const getProductoById = async (id) => {
 };
 
 
-
 export const addProduct = async (product) => {
   if (product instanceof FormData) {
     try {
@@ -132,6 +149,7 @@ export const addProduct = async (product) => {
   }
 };
 
+
 export const editProduct = async (id, formData) => {
   try {
     const url = `${API_URL}${id}`;
@@ -152,8 +170,6 @@ export const editProduct = async (id, formData) => {
     });
 
     const data = response.data;
-    // En lugar de usar formatImageUrl (que extrae solo la primera imagen),
-    // comprobamos si image_url es un arreglo y, en ese caso, formateamos todas las imágenes.
     if (data.image_url) {
       data.image_url = Array.isArray(data.image_url)
         ? formatImageUrls(data.image_url)

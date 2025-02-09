@@ -15,6 +15,7 @@ const AddProductForm = ({ closeModal }) => {
   const [productCategory, setProductCategory] = useState("");
 
   const [selectedImages, setSelectedImages] = useState([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(null);
   const [editedImageBlob, setEditedImageBlob] = useState(null);
 
   const [categories, setCategories] = useState([]);
@@ -35,41 +36,58 @@ const AddProductForm = ({ closeModal }) => {
 
   useEffect(() => {
     return () => {
-      selectedImages.forEach(file => URL.revokeObjectURL(URL.createObjectURL(file)));
+      selectedImages.forEach(file => {
+        if (file) {
+          URL.revokeObjectURL(file.preview);
+        }
+      });
       if (editedImageBlob) {
-        URL.revokeObjectURL(URL.createObjectURL(editedImageBlob));
+        URL.revokeObjectURL(editedImageBlob.preview);
       }
     };
   }, [selectedImages, editedImageBlob]);
 
   const onFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length) {
+    const file = e.target.files[0]; 
+    if (file) {
       const validFormats = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-      for (const file of files) {
-        if (!validFormats.includes(file.type)) {
-          alert("Formato de imagen no soportado. Solo se permiten PNG, JPG, JPEG y WEBP.");
-          return;
-        }
+      if (!validFormats.includes(file.type)) {
+        alert("Formato de imagen no soportado. Solo se permiten PNG, JPG, JPEG y WEBP.");
+        return;
       }
-      setSelectedImages(files);
+      setSelectedImages((prev) => {
+        if (prev.length < 6) {
+          return [...prev, file];
+        } else {
+          alert("Se ha alcanzado el máximo de 6 imágenes.");
+          return prev;
+        }
+      });
       setEditedImageBlob(null);
       setShowImageEditor(false);
     }
     e.target.value = null;
   };
 
-  const changeImage = () => {
-    setSelectedImages([]);
-    setEditedImageBlob(null);
-    setShowImageEditor(false);
-    setTimeout(() => {
+  const handleSquareClick = (index) => {
+    if (!selectedImages[index]) {
+      setCurrentImageIndex(index);
       if (fileInputRef.current) {
-        fileInputRef.current.value = null;
         fileInputRef.current.click();
       }
-    }, 0);
+    } else {
+      setCurrentImageIndex(index);
+      setShowImageEditor(true);
+    }
   };
+
+  const handleDelete = (index) => {
+    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
+    if (index === 0 && editedImageBlob) {
+      setEditedImageBlob(null);
+    }
+  };
+
 
   const resetForm = () => {
     setProductName("");
@@ -104,6 +122,12 @@ const AddProductForm = ({ closeModal }) => {
       return;
     }
 
+    const filledImages = selectedImages.filter(img => img instanceof File);
+    if (filledImages.length === 0) {
+      alert("No se han seleccionado imágenes válidas.");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("nombre", productName);
     formData.append("descripcion", productDescription);
@@ -111,10 +135,10 @@ const AddProductForm = ({ closeModal }) => {
     formData.append("cantidad", productQuantity);
     formData.append("categoria_id", selectedCat.id);
 
-    formData.append("image", editedImageBlob || selectedImages[0]);
+    formData.append("image", editedImageBlob || filledImages[0]);
 
-    if (selectedImages.length > 1) {
-      selectedImages.slice(1).forEach((file) => {
+    if (filledImages.length > 1) {
+      filledImages.slice(1).forEach((file) => {
         formData.append("additional_images", file);
       });
     }
@@ -134,65 +158,57 @@ const AddProductForm = ({ closeModal }) => {
     }
   };
 
+
   return (
     <div className="modal">
       <div className="modal-addProduct-content">
         <h2 className="title-form">Agregar Producto</h2>
-
         <div className="modal-body add-product-body">
           <form onSubmit={handleSubmit} encType="multipart/form-data">
-            <div>
-              <TextField
-                label="Nombre del Producto"
-                value={productName}
-                onChange={(e) => setProductName(e.target.value)}
-                fullWidth
-                variant="outlined"
-                margin="normal"
-                sx={{ marginTop: "5px", marginBottom: "5px" }}
-              />
-            </div>
+            <TextField
+              label="Nombre del Producto"
+              value={productName}
+              onChange={(e) => setProductName(e.target.value)}
+              fullWidth
+              variant="outlined"
+              margin="normal"
+              sx={{ marginTop: "5px", marginBottom: "5px" }}
+            />
 
-            <div>
-              <TextField
-                label="Descripción"
-                value={productDescription}
-                onChange={(e) => setProductDescription(e.target.value)}
-                multiline
-                rows={2}
-                fullWidth
-                variant="outlined"
-                margin="normal"
-                helperText={`${productDescription.length}/500`}
-                sx={{ marginTop: "5px", marginBottom: "5px" }}
-              />
-            </div>
+            <TextField
+              label="Descripción"
+              value={productDescription}
+              onChange={(e) => setProductDescription(e.target.value)}
+              multiline
+              rows={2}
+              fullWidth
+              variant="outlined"
+              margin="normal"
+              helperText={`${productDescription.length}/500`}
+              sx={{ marginTop: "5px", marginBottom: "5px" }}
+            />
 
-            <div>
-              <TextField
-                label="Precio USD"
-                type="number"
-                value={productPrice}
-                onChange={(e) => setProductPrice(e.target.value)}
-                fullWidth
-                variant="outlined"
-                margin="normal"
-                sx={{ marginTop: "5px", marginBottom: "5px" }}
-              />
-            </div>
+            <TextField
+              label="Precio USD"
+              type="number"
+              value={productPrice}
+              onChange={(e) => setProductPrice(e.target.value)}
+              fullWidth
+              variant="outlined"
+              margin="normal"
+              sx={{ marginTop: "5px", marginBottom: "5px" }}
+            />
 
-            <div>
-              <TextField
-                label="Cantidad"
-                type="number"
-                value={productQuantity}
-                onChange={(e) => setProductQuantity(e.target.value)}
-                fullWidth
-                variant="outlined"
-                margin="normal"
-                sx={{ marginTop: "5px", marginBottom: "5px" }}
-              />
-            </div>
+            <TextField
+              label="Cantidad"
+              type="number"
+              value={productQuantity}
+              onChange={(e) => setProductQuantity(e.target.value)}
+              fullWidth
+              variant="outlined"
+              margin="normal"
+              sx={{ marginTop: "5px", marginBottom: "5px" }}
+            />
 
             <div className="category">
               <Autocomplete
@@ -225,61 +241,56 @@ const AddProductForm = ({ closeModal }) => {
             </div>
 
             <div className="image-upload-section">
-              {selectedImages.length === 0 ? (
-                <div>
-                  <div className="file-input-wrapper">
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={onFileChange}
-                      accept="image/png, image/jpeg, image/jpg, image/webp"
-                      multiple
-                      style={{ display: "none" }}
+              <div className="image-grid">
+                {selectedImages.map((img, index) => (
+                  <div
+                    key={index}
+                    className={`image-slot filled`}
+                    onClick={() => {
+                      setCurrentImageIndex(index);
+                      setShowImageEditor(true);
+                    }}
+                  >
+                    <img
+                      src={URL.createObjectURL(img)}
+                      alt={`Imagen ${index + 1}`}
+                      className="slot-image"
                     />
-                    <Button variant="contained" onClick={() => fileInputRef.current?.click()}>
-                      Seleccionar imagenes
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="form-image-preview">
-                  <img
-                    src={URL.createObjectURL(editedImageBlob || selectedImages[0])}
-                    alt="Vista previa"
-                    onClick={() => setShowImageEditor(true)}
-                  />
-                  {selectedImages.length > 1 &&
-                    selectedImages.slice(1).map((file, idx) => (
-                      <img
-                        key={idx}
-                        src={URL.createObjectURL(file)}
-                        alt={`Adicional ${idx + 1}`}
-                      />
-                    ))}
-                  <div className="img-btn">
-                    <Button
-                      variant="contained"
-                      onClick={() => setShowImageEditor(true)}
-                      sx={{
-                        marginRight: 1,
-                        "&:hover": { backgroundColor: "#a66b43" },
+                    <div
+                      className="delete-overlay"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(index);
                       }}
                     >
-                      Modificar
-                    </Button>
-                    <Button
-                      variant="contained"
-                      onClick={changeImage}
-                      sx={{
-                        "&:hover": { backgroundColor: "#a66b43" },
-                      }}
-                    >
-                      Cambiar
-                    </Button>
+                      Eliminar
+                    </div>
                   </div>
-                </div>
-              )}
+                ))}
+
+                {Array.from({ length: 6 - selectedImages.length }).map((_, idx) => (
+                  <div
+                    key={`empty-${idx}`}
+                    className="image-slot"
+                    onClick={() => {
+                      if (fileInputRef.current) {
+                        fileInputRef.current.click();
+                      }
+                    }}
+                  >
+                    <span className="slot-plus">+</span>
+                  </div>
+                ))}
+              </div>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={onFileChange}
+                accept="image/png, image/jpeg, image/jpg, image/webp"
+                style={{ display: "none" }}
+              />
             </div>
+
 
             <div className="form-buttons">
               <Button
@@ -317,9 +328,7 @@ const AddProductForm = ({ closeModal }) => {
         {showImageEditor && (
           <ImageEditor
             image={editedImageBlob || selectedImages[0]}
-            setImage={(file) => {
-              setEditedImageBlob(file);
-            }}
+            setImage={(file) => setEditedImageBlob(file)}
             setImageEdited={true}
             onClose={() => setShowImageEditor(false)}
           />

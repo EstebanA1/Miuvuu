@@ -11,28 +11,10 @@ form input {
   width: 98%;
 }
 
-.form-image-preview {
-  display: flex;
-  align-items: center;
-  justify-content: space-evenly;
-  margin: 10px 0;
-}
-
-.form-image-preview img {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  margin-right: 12px;
-}
-
-.modify-image-btn {
-  align-self: center;
-}
-
 .form-buttons {
   display: flex;
   justify-content: space-between;
-} 
+}
 
 button:disabled {
   background-color: #ccc;
@@ -57,12 +39,102 @@ body.modal-open {
   background: #fff;
   padding: 20px 20px 0;
   border-radius: 8px;
-  max-width: 450px;
+  max-width: 500px;
   width: 100%;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
+  margin-top: -2rem;
 }
+
+.title-form {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.category {
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+
+.image-upload-section {
+  margin-top: 10px;
+}
+
+.image-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 48px;
+  justify-content: center;
+}
+
+.image-slot {
+  width: 100px;
+  height: 100px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  position: relative; 
+}
+
+.image-slot.filled {
+  border: none; 
+}
+
+.image-slot:hover {
+  background-color: #f0f0f0;
+}
+
+.slot-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.slot-plus {
+  font-size: 2rem;
+  color: #aaa;
+}
+
+.delete-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #d32f2f;
+  color: #fff;
+  display: none; 
+  justify-content: center;
+  align-items: center;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 8px;
+  z-index: 1;
+}
+
+.image-slot:hover .delete-overlay {
+  display: flex;
+  animation: slideIn 0.3s ease forwards;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 
 .image-editor img {
   max-width: 100%;
@@ -82,19 +154,3 @@ body.modal-open {
   border-radius: 4px;
   object-fit: cover;
 }
-
-.title-form {
-  margin: 0px;
-  display: flex;
-  justify-content: center;
-}
-
-.category{
-  margin-top: 10px;
-  margin-bottom: 5px;
-}
-
-.image-upload-section {
-  margin-top: 10px;
-}
-

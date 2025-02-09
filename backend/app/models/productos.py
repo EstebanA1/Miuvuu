@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey
-from sqlalchemy.types import JSON
+from sqlalchemy.dialects.postgresql import JSONB
 from app.database import Base
 
 class Producto(Base):
@@ -11,4 +11,4 @@ class Producto(Base):
     precio = Column(Float, nullable=False)
     cantidad = Column(Integer, nullable=False)
     categoria_id = Column(Integer, ForeignKey("categorias.id"), nullable=False)
-    image_url = Column(JSON, nullable=True)
+    image_url = Column(JSONB, nullable=True) 

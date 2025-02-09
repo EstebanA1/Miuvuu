@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query, File, Form, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
-from app.schemas.productos import Producto, ProductoCreate, ProductoResponse
+from app.models.productos import Producto as ProductoModel
+from app.schemas.productos import Producto as ProductoSchema, ProductoCreate, ProductoResponse
 from app.crud.productos import get_productos, get_producto, create_producto, update_producto, delete_producto
 from app.validators.productos import ProductoValidator
 from typing import Optional, List
@@ -12,6 +13,9 @@ import shutil
 import random
 import re
 import json 
+from sqlalchemy import select
+from app.helpers import extract_file_path_from_url, extract_folder_from_url, normalize_url
+
 
 router = APIRouter(prefix="/productos", tags=["productos"])
 
@@ -68,7 +72,7 @@ async def listar_productos(
             detail=str(e)
         )
 
-@router.get("/{producto_id}", response_model=Producto, responses={404: {"description": "Producto no encontrado"}})
+@router.get("/{producto_id}", response_model=ProductoSchema, responses={404: {"description": "Producto no encontrado"}})
 async def obtener_producto(producto_id: int, db: AsyncSession = Depends(get_db)):
     producto = await get_producto(db, producto_id)
     if not producto:
@@ -77,7 +81,7 @@ async def obtener_producto(producto_id: int, db: AsyncSession = Depends(get_db))
         )
     return producto
 
-@router.post("/", response_model=Producto)
+@router.post("/", response_model=ProductoSchema)
 async def crear_producto(
     nombre: str = Form(...),
     descripcion: str = Form(...),
@@ -85,7 +89,7 @@ async def crear_producto(
     cantidad: int = Form(...),
     categoria_id: int = Form(...),
     image: Optional[UploadFile] = File(None),
-    additional_images: Optional[List[UploadFile]] = File(None),
+    additional_images: List[UploadFile] = File(default=[]),
     db: AsyncSession = Depends(get_db),
 ):
     ProductoValidator.validate_nombre(nombre)
@@ -123,6 +127,7 @@ async def crear_producto(
     if additional_images:
         for add_image in additional_images:
             try:
+                print(f"Procesando imagen adicional: {add_image.filename}")
                 unique_file_name = generate_unique_name(add_image.filename)
                 extension = Path(add_image.filename).suffix
                 image_path = product_folder / f"{unique_file_name}{extension}"
@@ -143,6 +148,7 @@ async def crear_producto(
                 print(f"Error al procesar una imagen adicional: {e}")
                 raise HTTPException(status_code=500, detail=f"Error al procesar una imagen adicional: {str(e)}")
 
+
     producto_data = ProductoCreate(
         nombre=nombre,
         descripcion=descripcion,
@@ -153,7 +159,10 @@ async def crear_producto(
     )
     return await create_producto(db, producto_data)
 
-@router.put("/{producto_id}", response_model=Producto)
+
+
+
+@router.put("/{producto_id}", response_model=ProductoSchema)
 async def actualizar_producto(
     producto_id: int,
     nombre: str = Form(...),
@@ -161,37 +170,78 @@ async def actualizar_producto(
     precio: float = Form(...),
     cantidad: int = Form(...),
     categoria_id: int = Form(...),
-    image: Optional[UploadFile] = File(None),
+    existing_images: Optional[str] = Form(None),
+    images: List[UploadFile] = File(default=[]),
     db: AsyncSession = Depends(get_db)
 ):
-    ProductoValidator.validate_nombre(nombre)
-    ProductoValidator.validate_precio(precio)
-    ProductoValidator.validate_cantidad(cantidad)
+    # 1. Recuperar el producto desde la BD.
+    query = select(ProductoModel).where(ProductoModel.id == producto_id)
+    result = await db.execute(query)
+    db_producto = result.scalars().first()
+    if not db_producto:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
 
-    db_producto_actual = await get_producto(db, producto_id)
+    # 2. Procesar las imágenes existentes que llegan en el formulario.
     existing_image_urls = []
-    folder_name = None
+    if existing_images:
+        try:
+            parsed = json.loads(existing_images)
+            if isinstance(parsed, list):
+                existing_image_urls = parsed
+            else:
+                existing_image_urls = [parsed]
+        except Exception as e:
+            existing_image_urls = []
 
-    if db_producto_actual and db_producto_actual.image_url:
-        old_img_value = db_producto_actual.image_url
-        if isinstance(old_img_value, str):
+    # Normalizamos las URLs de la imagen enviada desde el formulario
+    existing_image_urls = [normalize_url(url) for url in existing_image_urls]
+
+    # 3. Extraer las imágenes que tenía el producto (old_images) y normalizarlas.
+    old_images = []
+    if db_producto.image_url:
+        if isinstance(db_producto.image_url, list):
+            old_images = db_producto.image_url
+        elif isinstance(db_producto.image_url, str):
             try:
-                parsed = json.loads(old_img_value)
+                parsed = json.loads(db_producto.image_url)
                 if isinstance(parsed, list):
-                    existing_image_urls = parsed
+                    old_images = parsed
                 else:
-                    existing_image_urls = [old_img_value]
+                    old_images = [db_producto.image_url]
+            except Exception:
+                old_images = [db_producto.image_url]
+    old_images = [normalize_url(url) for url in old_images]
+
+    # 4. Determinar cuáles imágenes fueron removidas (comparando las listas normalizadas)
+    removed_images = [img for img in old_images if img not in existing_image_urls]
+    for img_url in removed_images:
+        file_path = extract_file_path_from_url(img_url)
+        if file_path.exists():
+            try:
+                file_path.unlink()  # elimina el archivo
+                print(f"Se eliminó el archivo: {file_path}")
             except Exception as e:
-                existing_image_urls = [old_img_value]
-        elif isinstance(old_img_value, list):
-            existing_image_urls = old_img_value
+                print(f"Error al eliminar {file_path}: {e}")
 
-        if existing_image_urls:
-            first_img = existing_image_urls[0]
-            prefix = "/uploads/CarpetasDeProductos/"
-            if first_img.startswith(prefix):
-                folder_name = first_img[len(prefix):].split("/")[0]
+    # Iniciamos el arreglo final con las imágenes que el usuario decidió mantener.
+    final_image_urls = list(existing_image_urls)
 
+    # 5. Determinar el folder_name: se reutiliza el de las imágenes existentes o de la BD.
+    folder_name = ""
+    for img in existing_image_urls:
+        folder_name = extract_folder_from_url(img)
+        if folder_name:
+            break
+    if not folder_name and db_producto.image_url:
+        if isinstance(db_producto.image_url, list) and len(db_producto.image_url) > 0:
+            folder_name = extract_folder_from_url(db_producto.image_url[0])
+        elif isinstance(db_producto.image_url, str):
+            try:
+                parsed = json.loads(db_producto.image_url)
+                if isinstance(parsed, list) and len(parsed) > 0:
+                    folder_name = extract_folder_from_url(parsed[0])
+            except Exception:
+                folder_name = extract_folder_from_url(db_producto.image_url)
     if not folder_name:
         folder_name = generate_folder_name(nombre)
         print(f"Se generó un nuevo folder_name: {folder_name}")
@@ -199,51 +249,51 @@ async def actualizar_producto(
     product_folder = PRODUCTS_UPLOAD_DIR / folder_name
     product_folder.mkdir(parents=True, exist_ok=True)
 
-    if image:
-        try:
-            unique_file_name = generate_unique_name(image.filename)
-            extension = Path(image.filename).suffix
-            new_image_path = product_folder / f"{unique_file_name}{extension}"
-            with open(new_image_path, "wb") as buffer:
-                buffer.write(await image.read())
+    # 6. Procesar las nuevas imágenes subidas.
+    if images:
+        for image in images:
+            try:
+                unique_file_name = generate_unique_name(image.filename)
+                extension = Path(image.filename).suffix
+                new_image_path = product_folder / f"{unique_file_name}{extension}"
+                with open(new_image_path, "wb") as buffer:
+                    buffer.write(await image.read())
 
-            if image.content_type != "image/webp":
-                webp_image_path = convert_to_webp(new_image_path)
-                try:
-                    new_image_path.unlink()
-                except Exception as e:
-                    print(f"Error al eliminar el archivo original: {e}")
-                final_image_name = webp_image_path.name
-            else:
-                final_image_name = new_image_path.name
+                if image.content_type != "image/webp":
+                    webp_image_path = convert_to_webp(new_image_path)
+                    try:
+                        new_image_path.unlink()  # elimina el archivo original
+                    except Exception as e:
+                        print(f"Error al eliminar el archivo original: {e}")
+                    final_image_name = webp_image_path.name
+                else:
+                    final_image_name = new_image_path.name
 
-            new_image_url = f"/uploads/CarpetasDeProductos/{folder_name}/{final_image_name}"
-            print(f"Nuevo image_url generado: {new_image_url}")
-            image_urls = existing_image_urls + [new_image_url]
-        except Exception as e:
-            print(f"Error al procesar la imagen en actualización: {e}")
-            raise HTTPException(status_code=500, detail=f"Error al procesar la imagen: {str(e)}")
-    else:
-        image_urls = existing_image_urls
+                new_image_url = f"/uploads/CarpetasDeProductos/{folder_name}/{final_image_name}"
+                final_image_urls.append(new_image_url)
+            except Exception as e:
+                print(f"Error al procesar la imagen en actualización: {e}")
+                raise HTTPException(status_code=500, detail=f"Error al procesar la imagen: {str(e)}")
 
+    # 7. Actualizar el producto.
     producto_data = ProductoCreate(
         nombre=nombre,
         descripcion=descripcion,
         precio=precio,
         cantidad=cantidad,
         categoria_id=categoria_id,
-        image_url=image_urls if image_urls else None
+        image_url=final_image_urls if final_image_urls else None
     )
 
     db_producto = await update_producto(db, producto_id, producto_data)
     if not db_producto:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Producto no encontrado"
-        )
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
     return db_producto
 
-@router.delete("/{producto_id}", response_model=Producto, responses={404: {"description": "Producto no encontrado"}})
+
+
+
+@router.delete("/{producto_id}", response_model=ProductoSchema, responses={404: {"description": "Producto no encontrado"}})
 async def eliminar_producto(producto_id: int, db: AsyncSession = Depends(get_db)):
     producto_a_eliminar = await get_producto(db, producto_id)
     if not producto_a_eliminar:
@@ -268,25 +318,31 @@ async def eliminar_producto(producto_id: int, db: AsyncSession = Depends(get_db)
     
     folder_path = None
     if first_img_val:
-        folder_path = Path(first_img_val.lstrip("/")).parent
+        # Usamos el helper para obtener la ruta del archivo, y luego tomamos su carpeta (parent)
+        folder_path = extract_file_path_from_url(first_img_val).parent
         print(f"Carpeta identificada para eliminar: {folder_path}")
     else:
         print("No se encontró una URL de imagen válida.")
-
+    
     db_producto = await delete_producto(db, producto_id)
     
     if folder_path:
-        BASE_IMAGE_DIR = Path("uploads/CarpetasDeProductos") 
-        if BASE_IMAGE_DIR in folder_path.parents or folder_path == BASE_IMAGE_DIR:
+        BASE_IMAGE_DIR = Path("uploads/CarpetasDeProductos")
+        # Comprobamos que la carpeta a eliminar esté realmente dentro de BASE_IMAGE_DIR
+        try:
+            folder_path.relative_to(BASE_IMAGE_DIR)
             if folder_path.exists():
                 shutil.rmtree(folder_path)
                 print(f"Carpeta eliminada: {folder_path}")
             else:
                 print(f"La carpeta {folder_path} no existe.")
-        else:
+        except ValueError:
             print(f"Advertencia: La carpeta {folder_path} no está dentro de {BASE_IMAGE_DIR}. No se elimina.")
     
     return db_producto
+
+
+
 
 def generate_custom_errors(error):
     return {"error": "Error en los datos del producto", "detalles": str(error)}

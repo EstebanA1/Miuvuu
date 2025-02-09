@@ -52,3 +52,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 @app.options("/{path:path}")
 async def handle_options_request():
     return JSONResponse(content={}, status_code=200)
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    print("Unhandled Exception:", exc)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc)},
+        headers={"Access-Control-Allow-Origin": "*"} 
+    )
