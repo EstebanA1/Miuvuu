@@ -18,7 +18,7 @@ body.modal-open {
 
 .modal-addUser-content {
     background: #fff;
-    padding: 20px;
+    padding: 20px 20px 0 20px;
     border-radius: 8px;
     max-width: 450px;
     width: 100%;
@@ -56,8 +56,4 @@ body.modal-open {
     display: flex;
     justify-content: space-between;
     margin-top: 20px;
-}
-
-.select-role {
-    margin-top: 10px;
 }

@@ -2,8 +2,11 @@ import './App.css';
 import React from "react";
 import { BrowserRouter as Router, Route, Routes, useSearchParams, useLocation, useNavigate } from "react-router-dom";
 import Header from "./components/Header/Header";
-import Footer from "./components/Footer/Footer";
 import Content from "./components/Content/Content";
+import Footer from "./components/FooterPages/Footer/Footer";
+import About from "./components/FooterPages/About";
+import Terms from "./components/FooterPages/Terms";
+import Privacy from "./components/FooterPages/Privacy";
 import ManageUsersPage from "./components/ManageUser/Page/ManageUsersPage";
 import MyProfile from "./components/Profile/MyProfile";
 import ProductDetail from "./components/Productos/DetailsProduct/DetailsProduct";
@@ -71,6 +74,9 @@ const MainContent = () => {
         <Route path="/auth" element={<AuthModal />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/auth/error" element={<ErrorPage />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
         <Route path="/carrito" element={
           <ProtectedRoute element={<CartPage />} requiredPermission="view_cart" />
         }

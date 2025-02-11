@@ -162,6 +162,19 @@
   border-radius: 50%;
 }
 
+.favorite-button {
+  position: absolute !important;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  transition: transform 0.3s ease;
+}
+
+.favorite-button:hover {
+  transform: scale(1.1);
+}
+
+/* 
 .dark-mode .color-option.selected-color::after {
   border-color: #fff;
 }
@@ -202,18 +215,6 @@ body.dark-mode {
   color: #e0e0e0;
 }
 
-.favorite-button {
-  position: absolute !important;
-  top: 10px;
-  right: 10px;
-  background-color: rgba(255, 255, 255, 0.8) !important;
-  transition: transform 0.3s ease;
-}
-
-.favorite-button:hover {
-  transform: scale(1.1);
-}
-
 .dark-mode .favorite-button {
   background-color: rgba(42, 42, 42, 0.8) !important;
-}
+} */

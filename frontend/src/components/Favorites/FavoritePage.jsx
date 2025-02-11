@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { IconButton } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import { getProductos } from '../../services/productos';
+import { getProductos, formatImageUrl } from '../../services/productos'; 
 import './FavoritePage.css';
 
 const FavoritesPage = () => {
@@ -25,7 +25,7 @@ const FavoritesPage = () => {
         const fetchProducts = async () => {
             setLoading(true);
             try {
-                // Obtener todos los productos sin paginación
+
                 const allProducts = [];
                 let page = 1;
                 let hasMore = true;
@@ -42,7 +42,6 @@ const FavoritesPage = () => {
                     page++;
                 }
 
-                // Filtrar solo los productos favoritos
                 const favoritedProducts = allProducts.filter(product => 
                     favorites.includes(product.id)
                 );
@@ -83,44 +82,52 @@ const FavoritesPage = () => {
                 {products.length === 0 ? (
                     <h2>No tienes productos favoritos</h2>
                 ) : (
-                    products.map((product) => (
-                        <div
-                            key={product.id}
-                            className="product-item"
-                            onClick={() => handleProductClick(product.id)}
-                        >
-                            {product.image_url && (
-                                <img
-                                    src={product.image_url}
-                                    alt={product.nombre}
-                                    className="product-image"
-                                />
-                            )}
-                            <div className="product-info">
-                                <h3>{product.nombre}</h3>
-                                <p>${product.precio}</p>
+                    products.map((product) => {
+                        // Si image_url es un arreglo, extraemos el primero
+                        const imageSrc = product.image_url
+                            ? Array.isArray(product.image_url)
+                                ? formatImageUrl(product.image_url[0])
+                                : formatImageUrl(product.image_url)
+                            : null;
+                        return (
+                            <div
+                                key={product.id}
+                                className="product-item"
+                                onClick={() => handleProductClick(product.id)}
+                            >
+                                {imageSrc && (
+                                    <img
+                                        src={imageSrc}
+                                        alt={product.nombre}
+                                        className="product-image"
+                                    />
+                                )}
+                                <div className="product-info">
+                                    <h3>{product.nombre}</h3>
+                                    <p>${product.precio}</p>
+                                </div>
+                                {user && (
+                                    <IconButton
+                                        className="favorite-buttonFP"
+                                        onClick={(e) => handleFavoriteToggle(e, product)}
+                                        sx={{
+                                            color: favorites.includes(product.id) ? 'red' : 'gray',
+                                            '&:hover': {
+                                                color: favorites.includes(product.id) ? '#ff3333' : '#666',
+                                                backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                                            }
+                                        }}
+                                    >
+                                        {favorites.includes(product.id) ? (
+                                            <FavoriteIcon />
+                                        ) : (
+                                            <FavoriteBorderIcon />
+                                        )}
+                                    </IconButton>
+                                )}
                             </div>
-                            {user && (
-                                <IconButton
-                                    className="favorite-buttonFP"
-                                    onClick={(e) => handleFavoriteToggle(e, product)}
-                                    sx={{
-                                        color: favorites.includes(product.id) ? 'red' : 'gray',
-                                        '&:hover': {
-                                            color: favorites.includes(product.id) ? '#ff3333' : '#666',
-                                            backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                                        }
-                                    }}
-                                >
-                                    {favorites.includes(product.id) ? (
-                                        <FavoriteIcon />
-                                    ) : (
-                                        <FavoriteBorderIcon />
-                                    )}
-                                </IconButton>
-                            )}
-                        </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
         </div>

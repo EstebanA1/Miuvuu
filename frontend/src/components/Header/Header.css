@@ -80,20 +80,11 @@
   padding: 0;
 }
 
-.header.dark-mode {
-  background-color:#0a0a0a;
-}
-
 .logo {
   height: 40px;
   padding: 5px;
   filter: brightness(0) saturate(100%) invert(0%) sepia(0%) saturate(0%) hue-rotate(234deg) brightness(19%) contrast(104%);
-  /* Color oscuro para modo claro */
   transition: filter 0.3s ease;
-}
-
-body.dark-mode .logo {
-  filter: brightness(12.07%) saturate(100.07%) invert(98.91%) sepia(14.81%) contrast(80.12%);
 }
 
 .categories ul {
@@ -120,9 +111,7 @@ body.dark-mode .logo {
   background-color: rgba(69, 69, 69, 0.1);
 }
 
-body.dark-mode .categories li {
-  color: #f5f5f5;
-}
+
 
 .subcategories {
   position: absolute;
@@ -153,10 +142,6 @@ body.dark-mode .categories li {
   background-color: #f0f0f0;
 }
 
-body.dark-mode .subcategories {
-  background-color: #0a0a0a;
-}
-
 .header-selecters {
   display: flex;
 }
@@ -170,9 +155,25 @@ body.dark-mode .subcategories {
 }
 
 .header-selecters.admin {
-  margin-left: 340px;
+  margin-left: 300px;
+}
+
+/* .header.dark-mode {
+  background-color:#0a0a0a;
+}
+
+body.dark-mode .logo {
+  filter: brightness(12.07%) saturate(100.07%) invert(98.91%) sepia(14.81%) contrast(80.12%);
+}
+
+body.dark-mode .categories li {
+  color: #f5f5f5;
+}
+
+body.dark-mode .subcategories {
+  background-color: #0a0a0a;
 }
 
 body.dark-mode .header-icons .MuiIconButton-root {
   color: rgb(161 161 161);
-}
+} */

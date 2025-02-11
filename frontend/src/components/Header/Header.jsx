@@ -34,13 +34,13 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
   const isFirstRender = useRef(true);
   const { cartCount } = useCart();
 
-  useEffect(() => {
-    const storedTheme = localStorage.getItem("theme");
-    if (storedTheme === "dark") {
-      setIsDarkMode(true);
-      document.body.classList.add("dark-mode");
-    }
-  }, []);
+  // useEffect(() => {
+  //   const storedTheme = localStorage.getItem("theme");
+  //   if (storedTheme === "dark") {
+  //     setIsDarkMode(true);
+  //     document.body.classList.add("dark-mode");
+  //   }
+  // }, []);
 
   useEffect(() => {
     const handleUserLogin = (event) => {

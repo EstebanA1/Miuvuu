@@ -1,0 +1,13 @@
+.page-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 6rem;
+}
+
+.page-container p {
+    font-size: 1.1rem;
+    justify-content: center;
+    margin: 1rem 12rem;
+}

@@ -1,7 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import "./Footer.css";
 
 const Footer = () => {
+  const [email, setEmail] = useState("");
+
+  const handleSubscribe = (e) => {
+    e.preventDefault();
+    if (!email) {
+      alert("Por favor, ingresa un correo electrónico válido.");
+      return;
+    }
+
+    alert(`Bienvenido a Miuvuu! 🎉\n\nGracias por suscribirte, ${email}!\nPronto recibirás nuestras novedades.`);
+    setEmail("");
+  };
+
   return (
     <footer className="footer">
       <div className="footer-container">
@@ -11,7 +24,15 @@ const Footer = () => {
             <li><a href="/about">Acerca de nosotros</a></li>
             <li><a href="/terms">Términos y condiciones</a></li>
             <li><a href="/privacy">Políticas de privacidad</a></li>
-            <li><a href="/contact">Contacto</a></li>
+            <li>
+              <a
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=stnbrivasa@gmail.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Contacto
+              </a>
+            </li>
           </ul>
         </div>
 
@@ -26,8 +47,13 @@ const Footer = () => {
 
         <div className="footer-section">
           <h4>Suscríbete</h4>
-          <form className="subscribe-form">
-            <input type="email" placeholder="Tu correo electrónico" />
+          <form className="subscribe-form" onSubmit={handleSubscribe}>
+            <input 
+              type="email" 
+              placeholder="Tu correo electrónico" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+            />
             <button type="submit">Suscribirse</button>
           </form>
         </div>

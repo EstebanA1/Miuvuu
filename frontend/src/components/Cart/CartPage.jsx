@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { carritoService } from '../../services/carritoService';
-import { getProductos } from '../../services/productos';
+import { getProductos, formatImageUrl } from '../../services/productos'; 
 import { useCart } from '../../context/CartContext';
 import './CartPage.css';
 
@@ -104,12 +104,19 @@ const CartPage = () => {
                     const producto = cartItem.product || products.find(p => p.id === cartItem.producto_id);
                     if (!producto) return null;
                     const itemKey = `${cartItem.producto_id}-${cartItem.color}-${cartItem.talla}`;
+                    
+                    // Aquí normalizamos la URL de la imagen:
+                    const imageSrc = producto.image_url
+                        ? (Array.isArray(producto.image_url)
+                            ? formatImageUrl(producto.image_url[0])
+                            : formatImageUrl(producto.image_url))
+                        : '/placeholder-image.jpg';
 
                     return (
                         <div key={itemKey} className="cart-item">
                             <div className="item-image">
                                 <img
-                                    src={producto.image_url}
+                                    src={imageSrc}
                                     alt={producto.nombre}
                                     style={{ cursor: 'pointer' }}
                                     onClick={() => navigate(`/producto/${producto.id}`)}
