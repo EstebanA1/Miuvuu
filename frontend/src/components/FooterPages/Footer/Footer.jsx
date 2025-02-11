@@ -1,18 +1,31 @@
+import { sendWelcomeEmail } from "../../../services/emailService";
 import React, { useState } from "react";
 import "./Footer.css";
 
 const Footer = () => {
   const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubscribe = (e) => {
+  const handleSubscribe = async (e) => {
     e.preventDefault();
+
     if (!email) {
       alert("Por favor, ingresa un correo electrónico válido.");
       return;
     }
 
-    alert(`Bienvenido a Miuvuu! 🎉\n\nGracias por suscribirte, ${email}!\nPronto recibirás nuestras novedades.`);
-    setEmail("");
+    setIsLoading(true);
+
+    try {
+      await sendWelcomeEmail(email);
+      alert("El correo ha sido enviado.");
+      setEmail("");
+    } catch (error) {
+      console.error("Error al enviar el correo:", error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -48,13 +61,21 @@ const Footer = () => {
         <div className="footer-section">
           <h4>Suscríbete</h4>
           <form className="subscribe-form" onSubmit={handleSubscribe}>
-            <input 
-              type="email" 
-              placeholder="Tu correo electrónico" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
+            <input
+              type="email"
+              placeholder="Tu correo electrónico"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading}
+              className={isLoading ? 'input-disabled' : ''}
             />
-            <button type="submit">Suscribirse</button>
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className={isLoading ? 'button-loading' : ''}
+            >
+              {isLoading ? 'Enviando...' : 'Suscribirse'}
+            </button>
           </form>
         </div>
       </div>
