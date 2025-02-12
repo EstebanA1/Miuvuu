@@ -8,7 +8,6 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import './ManageUsersPage.css';
 
-
 const ManageUsersPage = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -44,9 +43,15 @@ const ManageUsersPage = () => {
         <div>
             <h2 className="GU">Gestión de Usuarios</h2>
             <div className="contentManageUsers">
-
-                <div >
-                    <button className="addUserButton" onClick={() => setIsAddingUser(true)}>Añadir Usuario</button>
+                <div>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => setIsAddingUser(true)}
+                        className="add-user-button"
+                    >
+                        Añadir Usuario
+                    </Button>
                 </div>
 
                 <div className="table">
@@ -71,7 +76,8 @@ const ManageUsersPage = () => {
                                     <td>
                                         <IconButton
                                             sx={{ color: 'rgb(3, 155, 229)' }}
-                                            onClick={() => setEditingUser(user)} className="editIcon"
+                                            onClick={() => setEditingUser(user)}
+                                            className="editIcon"
                                         >
                                             <EditIcon />
                                         </IconButton>
@@ -79,7 +85,8 @@ const ManageUsersPage = () => {
                                     <td>
                                         <IconButton
                                             sx={{ color: 'rgb(244, 67, 54)'}}
-                                            onClick={() => setDeletingUser(user)} className="deleteIcon"
+                                            onClick={() => setDeletingUser(user)}
+                                            className="deleteIcon"
                                         >
                                             <DeleteIcon />
                                         </IconButton>

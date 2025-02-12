@@ -1,4 +1,3 @@
-# authentication.py
 from app.crud.usuarios import get_usuario_by_correo, get_usuario_by_nombre, verify_password, create_usuario as create_new_user
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -8,6 +7,11 @@ from app.database import get_db
 from pydantic import BaseModel
 import logging
 from app.auth.auth_utils import create_access_token, verify_google_token
+from app.models.usuarios import Usuario
+from app.auth.auth_utils import SECRET_KEY, ALGORITHM
+import jwt
+from jwt.exceptions import PyJWTError
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -122,3 +126,25 @@ async def google_login(token: str, db: AsyncSession = Depends(get_db)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error al autenticar con Google"
         )
+        
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: AsyncSession = Depends(get_db)
+) -> Usuario:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="No se pudo validar las credenciales",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        correo: str = payload.get("sub")
+        if correo is None:
+            raise credentials_exception
+    except PyJWTError:
+        raise credentials_exception
+
+    user = await get_usuario_by_correo(db, correo)
+    if user is None:
+        raise credentials_exception
+    return user

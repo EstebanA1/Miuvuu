@@ -276,10 +276,17 @@ export const userService = {
             const processedData = {
                 nombre: userData.nombre,
                 correo: userData.correo,
-                contraseña: userData.contraseña,
-                rol: userData.rol || 'usuario',
                 metodo_pago: userData.metodo_pago || []
             };
+            
+            if (userData.contraseña) {
+                processedData.contraseña = userData.contraseña;
+            }
+            
+            if (userData.rol !== undefined) {
+                processedData.rol = userData.rol;
+            }
+            
             const response = await axios.put(`${USERS_API}${id}`, processedData);
             return response.data;
         } catch (error) {

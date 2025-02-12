@@ -41,3 +41,15 @@ class UsuarioSalida(BaseModel):
 
 class Usuario(UsuarioSalida):
     pass
+
+class UsuarioUpdateProfile(BaseModel):
+    nombre: Optional[str] = Field(None, max_length=100)
+    correo: Optional[str] = Field(None, max_length=255)
+    metodo_pago: Optional[List[str]] = None
+    rol: Optional[str] = None
+    favoritos: Optional[List[int]] = None
+    carrito: Optional[List[Dict[str, int]]] = None
+
+    current_password: Optional[str] = None
+    nueva_contraseña: Optional[str] = None
+    confirmar_nueva_contraseña: Optional[str] = None

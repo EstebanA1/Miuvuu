@@ -1,16 +1,17 @@
-from app.schemas.usuarios import UsuarioCreate, Usuario, UsuarioSalida
+from app.schemas.usuarios import UsuarioCreate, Usuario, UsuarioSalida, UsuarioUpdateProfile
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.models.usuarios import Usuario
 from app.models.productos import Producto
 from app.database import get_db
+from app.routes.authentication import get_current_user
 from app.crud.usuarios import (
     create_usuario,
     get_usuarios,
     get_usuario_by_id,
     delete_usuario,
-    update_usuario,
+    update_usuario_profile,
     get_usuario_by_correo
     )
 
@@ -62,15 +63,16 @@ async def eliminar_usuario(usuario_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.put("/usuarios/{usuario_id}", response_model=UsuarioSalida)
-async def actualizar_usuario(
+async def actualizar_usuario_admin(
     usuario_id: int,
-    usuario_update: UsuarioCreate,
-    db: AsyncSession = Depends(get_db),
+    update_data: UsuarioUpdateProfile, 
+    db: AsyncSession = Depends(get_db)
 ):
-    usuario = await update_usuario(db, usuario_id, usuario_update)
-    if usuario is None:
+    usuario_actualizado = await update_usuario_profile(db, usuario_id, update_data)
+    if not usuario_actualizado:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    return usuario
+    return usuario_actualizado
+
 
 
 async def agregar_a_favoritos(db: AsyncSession, usuario_id: int, producto_id: int):

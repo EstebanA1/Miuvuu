@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.models.usuarios import Usuario
-from app.schemas.usuarios import UsuarioCreate
+from app.schemas.usuarios import UsuarioCreate, UsuarioUpdateProfile
 from passlib.context import CryptContext
 from fastapi import HTTPException
 from sqlalchemy.dialects.postgresql import ARRAY
@@ -110,26 +110,38 @@ async def delete_usuario(db: AsyncSession, usuario_id: int):
         return usuario
     return None
 
-async def update_usuario(db: AsyncSession, usuario_id: int, usuario_update: UsuarioCreate):
-    usuario = await db.execute(select(Usuario).filter(Usuario.id == usuario_id))
-    usuario = usuario.scalar_one_or_none()
-
-    if usuario:
-        update_data = usuario_update.dict(exclude_unset=True)
+async def update_usuario_profile(db: AsyncSession, usuario_id: int, update_data: UsuarioUpdateProfile):
+    usuario = await get_usuario_by_id(db, usuario_id)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    if update_data.nueva_contraseña or update_data.confirmar_nueva_contraseña:
+        if not (update_data.nueva_contraseña and update_data.confirmar_nueva_contraseña):
+            raise HTTPException(status_code=400, detail="Para cambiar la contraseña, se deben enviar 'nueva_contraseña' y 'confirmar_nueva_contraseña'")
+        if update_data.nueva_contraseña != update_data.confirmar_nueva_contraseña:
+            raise HTTPException(status_code=400, detail="Las nuevas contraseñas no coinciden")
+        if not update_data.current_password:
+            raise HTTPException(status_code=400, detail="Debe enviar la contraseña actual para cambiar la contraseña")
+        if not verify_password(update_data.current_password, usuario.contraseña):
+            raise HTTPException(status_code=400, detail="La contraseña actual no es correcta")
         
-        # Manejar campos de lista
-        for field in ["favoritos", "carrito", "metodo_pago"]:
-            if field in update_data and update_data[field] is None:
-                update_data[field] = []
+        usuario.contraseña = pwd_context.hash(update_data.nueva_contraseña)
+    
+    if update_data.nombre is not None:
+        usuario.nombre = update_data.nombre
+    if update_data.correo is not None:
+        usuario.correo = update_data.correo
+    if update_data.metodo_pago is not None:
+        usuario.metodo_pago = update_data.metodo_pago
+    if update_data.rol is not None:
+        usuario.rol = update_data.rol
+    if update_data.favoritos is not None:
+        usuario.favoritos = update_data.favoritos
+    if update_data.carrito is not None:
+        usuario.carrito = update_data.carrito
 
-        if "contraseña" in update_data:
-            update_data["contraseña"] = pwd_context.hash(update_data["contraseña"])
-            
-        for key, value in update_data.items():
-            setattr(usuario, key, value)
+    db.add(usuario)
+    await db.commit()
+    await db.refresh(usuario)
+    return usuario
 
-        await db.commit()
-        await db.refresh(usuario)
-        return usuario
-
-    return None

@@ -32,6 +32,7 @@
     margin-top: 8rem;
     margin-bottom: 2rem;
     font-size: 2rem;
+    margin-right: 4rem;
 }
 
 .contentManageUsers {
@@ -41,12 +42,8 @@
     row-gap: 20px;
 }
 
-.addUserButton {
-    background-color: rgb(50, 50, 50);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
+.add-user-button {
+    margin-top: 1rem !important;
 }
 
 .addUserButton:hover {
