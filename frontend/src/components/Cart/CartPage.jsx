@@ -4,6 +4,7 @@ import { carritoService } from '../../services/carritoService';
 import { getProductos, formatImageUrl } from '../../services/productos';
 import { useCart } from '../../context/CartContext';
 import { createMercadoPagoPreference } from '../../services/PaymentService';
+import { formatPrice } from '../Utils/priceFormatter';
 import './CartPage.css';
 
 const CartPage = () => {
@@ -179,7 +180,7 @@ const CartPage = () => {
                                     </div>
                                 </div>
                                 <span className="variant-label">
-                                    Precio unitario: ${producto.precio.toFixed(2)}
+                                    Precio unitario: {formatPrice(producto.precio)}
                                 </span>
                                 <div className="quantity-controls">
                                     <button
@@ -212,7 +213,7 @@ const CartPage = () => {
                             </div>
                             <div className="lastSection">
                                 <div className="item-total">
-                                    <p>Total: ${(producto.precio * cartItem.cantidad).toFixed(2)}</p>
+                                    <p>Total: {formatPrice(producto.precio * cartItem.cantidad)}</p>
                                 </div>
                                 <button
                                     className="remove-btn"
@@ -232,7 +233,7 @@ const CartPage = () => {
                 })}
             </div>
             <div className="cart-summary">
-                <h2>Total del Carrito: ${total.toFixed(2)}</h2>
+                <h2>Total del Carrito: {formatPrice(total)}</h2>
                 <button className="checkout-btn" onClick={handleProceedToPayment}>
                     Proceder al Pago
                 </button>

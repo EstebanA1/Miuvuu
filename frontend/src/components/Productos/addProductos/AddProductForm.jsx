@@ -189,7 +189,7 @@ const AddProductForm = ({ closeModal }) => {
             />
 
             <TextField
-              label="Precio USD"
+              label="Precio"
               type="number"
               value={productPrice}
               onChange={(e) => setProductPrice(e.target.value)}

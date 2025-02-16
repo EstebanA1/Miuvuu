@@ -1,7 +1,5 @@
 import "./Header.css";
 import { IconButton, Badge } from '@mui/material';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import LightModeIcon from '@mui/icons-material/LightMode';
 import miuvuuLogo from "@assets/miuvuuIcon.svg";
 import SearchIcon from '@mui/icons-material/Search';
 import { getCategorias } from "../../services/categorias";
@@ -16,8 +14,11 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import { useCart } from '../../context/CartContext';
+import SortIcon from '@mui/icons-material/Sort';
+import Select from '@mui/material/Select';
+import FormControl from '@mui/material/FormControl';
 
-const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
+const Header = ({ onCategorySelect, onSearch, filter, onHomeClick, onSortChange }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [categorias, setCategorias] = useState([]);
@@ -33,14 +34,13 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
   const inputRef = useRef(null);
   const isFirstRender = useRef(true);
   const { cartCount } = useCart();
+  const [sortBy, setSortBy] = useState('default');
 
-  // useEffect(() => {
-  //   const storedTheme = localStorage.getItem("theme");
-  //   if (storedTheme === "dark") {
-  //     setIsDarkMode(true);
-  //     document.body.classList.add("dark-mode");
-  //   }
-  // }, []);
+  const handleSortChange = (event) => {
+    const value = event.target.value;
+    setSortBy(value);
+    onSortChange(value);
+  };
 
   useEffect(() => {
     const handleUserLogin = (event) => {
@@ -98,18 +98,6 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
 
     handleUrlChange();
   }, []);
-
-  // const toggleDarkMode = () => {
-  //   const newMode = !isDarkMode;
-  //   setIsDarkMode(newMode);
-  //   if (newMode) {
-  //     document.body.classList.add("dark-mode");
-  //     localStorage.setItem("theme", "dark");
-  //   } else {
-  //     document.body.classList.remove("dark-mode");
-  //     localStorage.setItem("theme", "light");
-  //   }
-  // };
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -225,7 +213,7 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
         setAuthModalOpen(true);
       }
     };
-  
+
     window.addEventListener('openAuthModal', handleOpenAuthModal);
     return () => window.removeEventListener('openAuthModal', handleOpenAuthModal);
   }, [user]);
@@ -299,6 +287,46 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
               <SearchIcon />
             </IconButton>
           </div>
+          <FormControl size="small" className="sort-control">
+            <Select
+              value={sortBy}
+              onChange={handleSortChange}
+              displayEmpty
+              variant="outlined"
+              startAdornment={<SortIcon />}
+              renderValue={() => ''}
+              sx={{
+                height: 30,
+                width: 80,
+                marginRight: 2,
+                backgroundColor: 'rgba(69, 69, 69, 0.08)',
+                borderRadius: '4px',
+                transition: 'none',
+                '& .MuiOutlinedInput-notchedOutline': {
+                  border: '1px solid transparent'
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  border: '1px solid transparent'
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  border: '1px solid transparent'
+                },
+                '&:hover': {
+                  backgroundColor: 'rgba(69, 69, 69, 0.08)'
+                },
+                '&.Mui-focused': {
+                  backgroundColor: 'rgba(69, 69, 69, 0.08)'
+                }
+              }}
+            >
+              <MenuItem value="default">Por defecto</MenuItem>
+              <MenuItem value="price_asc">Precio: Menor a Mayor</MenuItem>
+              <MenuItem value="price_desc">Precio: Mayor a Menor</MenuItem>
+              <MenuItem value="name_asc">Nombre: A-Z</MenuItem>
+              <MenuItem value="name_desc">Nombre: Z-A</MenuItem>
+            </Select>
+          </FormControl>
+
 
           {authService.hasPermission('manage_favorites') && (
             <IconButton onClick={() => navigate('/favoritos')}>
@@ -313,11 +341,6 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick }) => {
             </IconButton>
           )}
 
-          {/* <div className="dark-mode-toggle">
-            <IconButton onClick={toggleDarkMode}>
-              {isDarkMode ? <DarkModeIcon /> : <LightModeIcon />}
-            </IconButton>
-          </div> */}
           <IconButton onClick={handleAccountClick}>
             <AccountCircleIcon />
           </IconButton>

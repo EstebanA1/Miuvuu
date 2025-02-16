@@ -13,10 +13,10 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useFavorites } from '../../context/FavoritesContext';
 import Pagination from '../Pagination/Pagination';
 import { useSearchParams } from 'react-router-dom';
-
+import { formatPrice } from '../Utils/priceFormatter';
 const ITEMS_PER_PAGE = 15;
 
-const Content = ({ filter }) => {
+const Content = ({ filter, sortBy = 'default' }) => {
   const [modalState, setModalState] = useState({
     add: false,
     edit: false,
@@ -33,22 +33,62 @@ const Content = ({ filter }) => {
   const [totalProducts, setTotalProducts] = useState(0);
   const currentPage = parseInt(searchParams.get('page')) || 1;
 
+  const sortProducts = (products, sortMethod) => {
+    let sortedProducts = [...products];
+  
+    switch (sortMethod) {
+      case 'price_asc':
+        sortedProducts.sort((a, b) => a.precio - b.precio);
+        break;
+      case 'price_desc':
+        sortedProducts.sort((a, b) => b.precio - a.precio);
+        break;
+      case 'name_asc':
+        sortedProducts.sort((a, b) => a.nombre.localeCompare(b.nombre));
+        break;
+      case 'name_desc':
+        sortedProducts.sort((a, b) => b.nombre.localeCompare(a.nombre));
+        break;
+      default:
+        break;
+    }
+  
+    return sortedProducts;
+  };
+
+  useEffect(() => {
+    if (!window.isFilterUpdateInProgress) {
+      const fetchAndSortProducts = async () => {
+        await fetchProductos();
+        setProductos(prevProducts => sortProducts(prevProducts, sortBy));
+      };
+      fetchAndSortProducts();
+    }
+    window.isFilterUpdateInProgress = false;
+  }, [filter, currentPage, sortBy]);
+
   const fetchProductos = async (filterParams = filter) => {
     try {
       const query = [];
-      if (filterParams.category) query.push(`categoria=${encodeURIComponent(filterParams.category)}`);
-      if (filterParams.gender) query.push(`genero=${encodeURIComponent(filterParams.gender)}`);
-      if (filterParams.searchQuery) query.push(`searchQuery=${encodeURIComponent(filterParams.searchQuery)}`);
+      if (filterParams.category)
+        query.push(`categoria=${encodeURIComponent(filterParams.category)}`);
+      if (filterParams.gender)
+        query.push(`genero=${encodeURIComponent(filterParams.gender)}`);
+      if (filterParams.searchQuery)
+        query.push(`searchQuery=${encodeURIComponent(filterParams.searchQuery)}`);
+
+      if (sortBy && sortBy !== 'default') {
+        query.push(`sortBy=${sortBy}`);
+      }
 
       query.push(`page=${currentPage}`);
       query.push(`limit=${ITEMS_PER_PAGE}`);
 
       const queryString = query.length > 0 ? `?${query.join("&")}` : "";
       const response = await getProductos(queryString);
-    
+
       setProductos(response.products);
       setTotalProducts(response.total);
-  
     } catch (error) {
       console.error("Error al obtener productos", error);
       setProductos([]);
@@ -56,19 +96,13 @@ const Content = ({ filter }) => {
     }
   };
 
+
   const handlePageChange = (newPage) => {
     setSearchParams(prev => {
       prev.set('page', newPage);
       return prev;
     });
   };
-
-  useEffect(() => {
-    if (!window.isFilterUpdateInProgress) {
-      fetchProductos();
-    }
-    window.isFilterUpdateInProgress = false;
-  }, [filter, currentPage]);
 
   useEffect(() => {
     const handleFilterUpdate = (event) => {
@@ -187,7 +221,7 @@ const Content = ({ filter }) => {
                 <div className="principalInfo">
                   <div className="upperSection">
                     <span className="product-name">{producto.nombre}</span>
-                    <span className="product-price">${producto.precio}</span>
+                    <span className="product-price">{formatPrice(producto.precio)}</span>
                   </div>
                 </div>
                 {user && (

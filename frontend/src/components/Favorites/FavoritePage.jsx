@@ -5,6 +5,7 @@ import { IconButton } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import { getProductos, formatImageUrl } from '../../services/productos'; 
+import { formatPrice } from '../Utils/priceFormatter';
 import './FavoritePage.css';
 
 const FavoritesPage = () => {
@@ -104,7 +105,7 @@ const FavoritesPage = () => {
                                 )}
                                 <div className="product-info">
                                     <h3>{product.nombre}</h3>
-                                    <p>${product.precio}</p>
+                                    <p>{formatPrice(product.precio)}</p>
                                 </div>
                                 {user && (
                                     <IconButton

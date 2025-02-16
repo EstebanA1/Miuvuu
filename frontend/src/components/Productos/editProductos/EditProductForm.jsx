@@ -244,7 +244,7 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
                         />
 
                         <TextField
-                            label="Precio USD"
+                            label="Precio"
                             type="number"
                             value={productPrice}
                             onChange={(e) => setProductPrice(e.target.value)}

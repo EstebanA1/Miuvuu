@@ -1,5 +1,5 @@
 import './App.css';
-import React from "react";
+import React, { useState } from "react";
 import { BrowserRouter as Router, Route, Routes, useSearchParams, useLocation, useNavigate } from "react-router-dom";
 import Header from "./components/Header/Header";
 import Content from "./components/Content/Content";
@@ -23,10 +23,13 @@ import PaymentSuccess from './components/Pagos/PaymentSuccess';
 import PaymentFailure from './components/Pagos/PaymentFailure';
 import PaymentPending from './components/Pagos/PaymentPending';
 
+
 const MainContent = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const [sortBy, setSortBy] = useState('default');
+
 
   const filter = {
     category: searchParams.get("category") || null,
@@ -46,6 +49,10 @@ const MainContent = () => {
       }));
     }
   }, [searchParams, location.pathname]);
+
+  const handleSortChange = (newSortBy) => {
+    setSortBy(newSortBy);
+  };
 
   const handleCategorySelect = (categoryName, gender = null) => {
     const params = new URLSearchParams();
@@ -71,9 +78,10 @@ const MainContent = () => {
         onSearch={handleSearch}
         filter={filter}
         onHomeClick={handleHomeClick}
+        onSortChange={handleSortChange}
       />
       <Routes>
-        <Route path="/" element={<Content key={location.search} filter={filter} />} />
+        <Route path="/" element={<Content key={location.search} filter={filter} sortBy={sortBy} />} />
         <Route path="/producto/:id" element={<ProductDetail />} />
         <Route path="/auth" element={<AuthModal />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
