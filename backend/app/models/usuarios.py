@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, ARRAY
-from sqlalchemy.dialects.postgresql import ARRAY, JSONB
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import relationship 
 from app.database import Base
 
 class Usuario(Base):
@@ -13,3 +14,5 @@ class Usuario(Base):
     rol = Column(String(50))
     favoritos = Column(ARRAY(Integer), default=[])
     carrito = Column(JSONB, default=[])
+
+    pedidos = relationship("Pedido", back_populates="usuario")

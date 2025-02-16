@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from dotenv import load_dotenv
+from pyngrok import ngrok
 import smtplib
 import os
 import re
@@ -17,6 +18,7 @@ from app.routes.authentication import router as auth_router
 from app.routes.authGoogle import router as google_auth_router
 from app.routes.favorites import router as favorites_router
 from app.routes.carrito import router as carrito_router
+from app.routes.pagos import router as pagos_router
 
 app = FastAPI(
     title="Miuvuu API",
@@ -43,6 +45,12 @@ app.include_router(productos.router, prefix="/api", tags=["productos"])
 app.include_router(google_auth_router, prefix="/api/auth/google", tags=["autenticación con Google"])
 app.include_router(favorites_router, prefix="/api", tags=["favoritos"])
 app.include_router(carrito_router, prefix="/api", tags=["carrito"])
+app.include_router(pagos_router, prefix="/api/pagos", tags=["pagos"])
+ngrok.set_auth_token(os.environ.get("NGROK_TOKEN"))
+
+tunnel = ngrok.connect(8000)
+# print("Public URL:", tunnel.public_url)
+
 
 @app.get("/")
 def read_root():

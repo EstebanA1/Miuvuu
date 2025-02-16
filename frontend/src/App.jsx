@@ -18,6 +18,10 @@ import { ProtectedRoute } from './config/ProtectedRoute';
 import AuthModal from './components/Auth/AuthModal';
 import { CartProvider } from './context/CartContext';
 import CartPage from './components/Cart/CartPage';
+import PayReturn from './components/Pagos/PayReturn';
+import PaymentSuccess from './components/Pagos/PaymentSuccess';
+import PaymentFailure from './components/Pagos/PaymentFailure';
+import PaymentPending from './components/Pagos/PaymentPending';
 
 const MainContent = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -97,6 +101,12 @@ const MainContent = () => {
             requiredPermission="all" />
         }
         />
+
+        <Route path="/pay/return" element={<PayReturn />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-failure" element={<PaymentFailure />} />
+        <Route path="/payment-pending" element={<PaymentPending />} />
+
       </Routes>
       <Footer />
     </>

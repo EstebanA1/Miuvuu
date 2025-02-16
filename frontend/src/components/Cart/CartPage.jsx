@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { carritoService } from '../../services/carritoService';
-import { getProductos, formatImageUrl } from '../../services/productos'; 
+import { getProductos, formatImageUrl } from '../../services/productos';
 import { useCart } from '../../context/CartContext';
+import { createMercadoPagoPreference } from '../../services/PaymentService';
 import './CartPage.css';
 
 const CartPage = () => {
@@ -13,6 +14,7 @@ const CartPage = () => {
     const { updateCart } = useCart();
     const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem('user'));
+    const isTestMode = true;
     const colors = {
         'Blanco': '#FFFFFF',
         'Negro': '#000000',
@@ -83,6 +85,38 @@ const CartPage = () => {
         }
     };
 
+    const handleProceedToPayment = async () => {
+        const total = calculateTotal(cart);
+        const orderReference = `ORDER_${Date.now()}`;
+
+        const paymentData = {
+            title: `Orden #${orderReference}`,
+            quantity: 1,
+            unit_price: total,
+            success_url: `${window.location.origin}/payment-success`,
+            failure_url: `${window.location.origin}/payment-failure`,
+            pending_url: `${window.location.origin}/payment-pending`
+        };
+
+        console.log("DEBUG: Datos de pago a enviar:", paymentData);
+
+        try {
+            const preference = await createMercadoPagoPreference(paymentData);
+            console.log("DEBUG: Preferencia recibida:", preference);
+
+            if (isTestMode && preference.sandbox_init_point) {
+                window.location.href = preference.sandbox_init_point;
+            } else if (preference.init_point) {
+                window.location.href = preference.init_point;
+            } else {
+                throw new Error("No se obtuvo la URL de pago");
+            }
+        } catch (error) {
+            console.error("Error al proceder al pago:", error);
+            alert("Error al procesar el pago. Por favor, intenta nuevamente.");
+        }
+    };
+
     if (loading) return <div className="loading">Cargando carrito...</div>;
     if (error) return <div className="error">{error}</div>;
     if (!Array.isArray(cart) || cart.length === 0) {
@@ -104,8 +138,7 @@ const CartPage = () => {
                     const producto = cartItem.product || products.find(p => p.id === cartItem.producto_id);
                     if (!producto) return null;
                     const itemKey = `${cartItem.producto_id}-${cartItem.color}-${cartItem.talla}`;
-                    
-                    // Aquí normalizamos la URL de la imagen:
+
                     const imageSrc = producto.image_url
                         ? (Array.isArray(producto.image_url)
                             ? formatImageUrl(producto.image_url[0])
@@ -200,7 +233,9 @@ const CartPage = () => {
             </div>
             <div className="cart-summary">
                 <h2>Total del Carrito: ${total.toFixed(2)}</h2>
-                <button className="checkout-btn">Proceder al Pago</button>
+                <button className="checkout-btn" onClick={handleProceedToPayment}>
+                    Proceder al Pago
+                </button>
             </div>
         </div>
     );
