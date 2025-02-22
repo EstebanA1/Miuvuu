@@ -1,4 +1,6 @@
-const BASE_URL = 'http://127.0.0.1:8000/api';
+import { API_URL } from "../config/config";
+
+const BASE_URL = `${API_URL}/api`;
 
 export const favoritesService = {
     getFavorites: async (userId) => {

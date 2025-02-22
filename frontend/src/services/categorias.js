@@ -1,10 +1,11 @@
 import axios from "axios";
+import { API_URL } from "../config/config";
 
-const API_URL = "http://127.0.0.1:8000/api/categorias/";
+const BASE_URL = `${API_URL}/api/categorias/`;
 
 export const getCategorias = async () => {
     try {
-      const response = await axios.get(API_URL);
+      const response = await axios.get(BASE_URL);
       return response.data;
     } catch (error) {
       console.error("Error al obtener las categorías:", error);

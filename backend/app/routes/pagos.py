@@ -64,7 +64,7 @@ async def create_mercadopago_preference(payment: MercadoPagoPayment):
             )
         
         preference = preference_response["response"]
-        logger.info(f"Preferencia creada: {preference}")
+        # logger.info(f"Preferencia creada: {preference}")
 
         return {
             "preference": preference,

@@ -1,6 +1,6 @@
 import axios from "axios";
+import { API_URL } from "../config/config";
 
-const API_URL = "http://127.0.0.1:8000";
 const AUTH_API = `${API_URL}/api/auth/`;
 const USERS_API = `${API_URL}/api/usuarios/`;
 

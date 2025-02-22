@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { API_URL } from "../config/config";
 
-const API_URL = 'http://localhost:8000/api';
+const BASE_URL = `${API_URL}/api`;
 
 export const finalizarOrden = async (userId) => {
-    const response = await axios.put(`${API_URL}/usuarios/${userId}/finalizar-orden`);
+    const response = await axios.put(`${BASE_URL}/usuarios/${userId}/finalizar-orden`);
     return response.data;
 };

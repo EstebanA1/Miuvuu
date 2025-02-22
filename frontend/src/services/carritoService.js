@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { API_URL } from "../config/config";
 
-const BASE_URL = 'http://localhost:8000/api';
+const BASE_URL = `${API_URL}/api`;
 
 export const carritoService = {
     getCart: async (userId) => {

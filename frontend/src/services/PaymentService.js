@@ -1,11 +1,12 @@
 import axios from 'axios';
+import { API_URL } from "../config/config";
 
-const API_URL = 'http://localhost:8000/api/pagos';
+const BASE_URL = `${API_URL}/api/pagos`;
 
 export const createMercadoPagoPreference = async (paymentData) => {
     console.log("DEBUG: Enviando datos de pago:", paymentData);
     try {
-        const response = await axios.post(`${API_URL}/mercadopago`, paymentData);
+        const response = await axios.post(`${BASE_URL}/mercadopago`, paymentData);
         console.log("DEBUG: Respuesta del backend:", response.data);
         return response.data.preference;
     } catch (error) {

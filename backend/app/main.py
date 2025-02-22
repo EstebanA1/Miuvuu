@@ -32,7 +32,8 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://accounts.google.com"],
+    allow_origins=["http://localhost:5173", "https://accounts.google.com", "http://frontend:5173"],
+    # allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
@@ -48,7 +49,7 @@ app.include_router(carrito_router, prefix="/api", tags=["carrito"])
 app.include_router(pagos_router, prefix="/api/pagos", tags=["pagos"])
 ngrok.set_auth_token(os.environ.get("NGROK_TOKEN"))
 
-tunnel = ngrok.connect(8000)
+# tunnel = ngrok.connect(8000)
 # print("Public URL:", tunnel.public_url)
 
 
