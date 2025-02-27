@@ -32,8 +32,8 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://accounts.google.com", "http://frontend:5173"],
-    # allow_origins=["*"],
+    # allow_origins=["http://localhost:5173", "https://accounts.google.com", "http://frontend:5173"],
+    allow_origins=["https://accounts.google.com", "https://miuvuu.railway.app"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],

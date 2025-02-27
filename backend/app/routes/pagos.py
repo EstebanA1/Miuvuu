@@ -21,7 +21,8 @@ async def create_mercadopago_preference(payment: MercadoPagoPayment):
 
     notification_url = os.environ.get(
         "MERCADOPAGO_NOTIFICATION_URL", 
-        "http://localhost:8000/api/pagos/notification" 
+        # "http://localhost:8000/api/pagos/notification" 
+        "https://miuvuu.railway.app/api/pagos/notification" 
     )
 
     logger.debug(f"Datos recibidos para la preferencia: {payment.dict()}")

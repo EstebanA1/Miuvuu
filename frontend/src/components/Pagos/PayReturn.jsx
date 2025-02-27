@@ -17,7 +17,8 @@ const PayReturn = () => {
             }
 
             try {
-                const response = await axios.post('http://localhost:8000/api/pagos/webpay/confirm', {
+                // const response = await axios.post('http://localhost:8000/api/pagos/webpay/confirm', {
+                const response = await axios.post('https://miuvuu.railway.app/api/pagos/webpay/confirm', {
                     token: token
                 });
 
