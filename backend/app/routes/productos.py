@@ -49,11 +49,17 @@ async def listar_productos(
     categoria: Optional[str] = None,
     genero: Optional[str] = None,
     searchQuery: Optional[str] = None,
-    sortBy: Optional[str] = Query(default="default", description="Ordenamiento: price_asc, price_desc, name_asc, name_desc"),
+    sortBy: Optional[str] = Query(
+        default="default", 
+        description="Ordenamiento: price_asc, price_desc, name_asc, name_desc, newest"
+    ),
     page: Optional[int] = Query(default=1, ge=1, description="Número de página"),
     limit: Optional[int] = Query(default=30, ge=1, le=100, description="Límite de productos por página"),
     db: AsyncSession = Depends(get_db)
 ):
+    if sortBy == "newest":
+        sortBy = "created_at_desc"
+    
     try:
         result = await get_productos(
             db, 

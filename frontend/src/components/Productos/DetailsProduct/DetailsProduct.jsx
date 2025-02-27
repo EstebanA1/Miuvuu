@@ -9,8 +9,9 @@ import { getCategorias } from '../../../services/categorias';
 import { useFavorites } from '../../../context/FavoritesContext';
 import { useCart } from '../../../context/CartContext';
 import { carritoService } from '../../../services/carritoService';
-import './DetailsProduct.css';
 import { Link as RouterLink } from 'react-router-dom';
+import { formatPrice } from '../../Utils/priceFormatter';
+import './DetailsProduct.css';
 
 const ProductDetail = () => {
     const { id } = useParams();
@@ -38,7 +39,7 @@ const ProductDetail = () => {
             try {
                 setLoading(true);
                 const [productData, categoriesData] = await Promise.all([
-                    getProductoById(id), 
+                    getProductoById(id),
                     getCategorias()
                 ]);
 
@@ -155,8 +156,9 @@ const ProductDetail = () => {
                     </div>
 
                     <div className="price">
-                        <h2>${product.precio}</h2>
+                        <h2>{formatPrice(product.precio)}</h2>
                     </div>
+
 
                     <div className="color-selector2">
                         <label>Color</label>
@@ -218,7 +220,7 @@ const ProductDetail = () => {
 
                     <div className="shipping-info">
                         <LocalShippingOutlinedIcon />
-                        <p>Envío gratis en pedidos superiores a $30.00</p>
+                        <p>Envío gratis en pedidos superiores a $30.000</p>
                     </div>
 
                     <div className="product-description">

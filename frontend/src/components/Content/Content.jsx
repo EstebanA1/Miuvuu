@@ -5,15 +5,17 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddProductForm from "../Productos/addProductos/AddProductForm";
 import EditProductForm from "../Productos/editProductos/EditProductForm";
 import DeleteProductForm from "../Productos/deleteProductos/DeleteProductForm";
-import { getProductos, formatImageUrl } from "../../services/productos";
+import { getProductos, formatImageUrl, getCarouselProducts } from "../../services/productos";
 import { authService } from "../../services/authService";
 import React, { useState, useEffect } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useFavorites } from '../../context/FavoritesContext';
 import Pagination from '../Pagination/Pagination';
 import { useSearchParams } from 'react-router-dom';
 import { formatPrice } from '../Utils/priceFormatter';
+import Carousel from '../Carousel/Carousel';
+
 const ITEMS_PER_PAGE = 15;
 
 const Content = ({ filter, sortBy = 'default' }) => {
@@ -32,10 +34,14 @@ const Content = ({ filter, sortBy = 'default' }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [totalProducts, setTotalProducts] = useState(0);
   const currentPage = parseInt(searchParams.get('page')) || 1;
+  const [carouselProducts, setCarouselProducts] = useState([]);
+  const location = useLocation();
+  const isHomePage = location.pathname === '/' && !filter.category && !filter.gender && !filter.searchQuery && currentPage === 1;
+  const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
 
   const sortProducts = (products, sortMethod) => {
     let sortedProducts = [...products];
-  
+
     switch (sortMethod) {
       case 'price_asc':
         sortedProducts.sort((a, b) => a.precio - b.precio);
@@ -52,20 +58,20 @@ const Content = ({ filter, sortBy = 'default' }) => {
       default:
         break;
     }
-  
     return sortedProducts;
   };
 
-  useEffect(() => {
-    if (!window.isFilterUpdateInProgress) {
-      const fetchAndSortProducts = async () => {
-        await fetchProductos();
-        setProductos(prevProducts => sortProducts(prevProducts, sortBy));
-      };
-      fetchAndSortProducts();
+  const loadCarouselProducts = async () => {
+    if (isHomePage) {
+      try {
+        const products = await getCarouselProducts();
+        setCarouselProducts(products);
+      } catch (error) {
+        console.error("Error loading carousel products:", error);
+        setCarouselProducts([]);
+      }
     }
-    window.isFilterUpdateInProgress = false;
-  }, [filter, currentPage, sortBy]);
+  };
 
   const fetchProductos = async (filterParams = filter) => {
     try {
@@ -84,10 +90,15 @@ const Content = ({ filter, sortBy = 'default' }) => {
       query.push(`page=${currentPage}`);
       query.push(`limit=${ITEMS_PER_PAGE}`);
 
+      if (!filterParams.category && !filterParams.gender && !filterParams.searchQuery && currentPage === 1 && !isHomePage) {
+        return;
+      }
+
       const queryString = query.length > 0 ? `?${query.join("&")}` : "";
       const response = await getProductos(queryString);
+      const sortedProducts = sortProducts(response.products, sortBy);
 
-      setProductos(response.products);
+      setProductos(sortedProducts);
       setTotalProducts(response.total);
     } catch (error) {
       console.error("Error al obtener productos", error);
@@ -103,6 +114,26 @@ const Content = ({ filter, sortBy = 'default' }) => {
       return prev;
     });
   };
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (!window.isFilterUpdateInProgress) {
+        await fetchProductos();
+        if (isHomePage) {
+          await loadCarouselProducts();
+        }
+      }
+      window.isFilterUpdateInProgress = false;
+    };
+
+    loadData();
+  }, [filter, currentPage, sortBy, isHomePage]);
+
+  useEffect(() => {
+    if (!isHomePage) {
+      setCarouselProducts([]);
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleFilterUpdate = (event) => {
@@ -121,11 +152,6 @@ const Content = ({ filter, sortBy = 'default' }) => {
     }
   }, []);
 
-  const hasAdminPrivileges = () => {
-    const user = authService.getCurrentUser();
-    return user && (user.rol === 'admin' || user.rol === 'vendedor');
-  };
-
   useEffect(() => {
     const checkUserRole = () => {
       const user = authService.getCurrentUser();
@@ -135,6 +161,11 @@ const Content = ({ filter, sortBy = 'default' }) => {
     };
     checkUserRole();
   }, []);
+
+  const hasAdminPrivileges = () => {
+    const user = authService.getCurrentUser();
+    return user && (user.rol === 'admin' || user.rol === 'vendedor');
+  };
 
   const handleOpenModal = (type, product = null) => {
     if (!hasAdminPrivileges()) {
@@ -176,15 +207,19 @@ const Content = ({ filter, sortBy = 'default' }) => {
     navigate(`/producto/${producto.id}`);
   };
 
-
-  const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
-
   return (
-    <div className="content-container">
+    <div className={`content-container ${isHomePage ? 'home-layout' : ''}`}>
+      {isHomePage && carouselProducts.length > 0 && (
+        <div className="carousel-section">
+          <Carousel productos={carouselProducts} />
+        </div>
+      )}
+
       {hasAdminPrivileges() && (
         <Button
           variant="contained"
           color="primary"
+          aria-label="Añadir Producto"
           onClick={() => handleOpenModal("add")}
           className="add-product-button"
         >
@@ -204,16 +239,26 @@ const Content = ({ filter, sortBy = 'default' }) => {
       )}
 
       <div className="centerContainer">
-        <div className="center-content">
-          <h2>
-            {filter.category ? `${filter.category} de ${filter.gender}` : filter.gender ? `Prendas de ${filter.gender}` : ""}
-          </h2>
+        <div
+          className="center-content">
+          
+          {isHomePage && <h1 className="content-title">Nuestros Productos</h1>}
 
-          <div className="product-list">
+          {(filter.category || filter.gender) && (
+            <h2>
+              {filter.category ? `${filter.category} de ${filter.gender}` : filter.gender ? `Prendas de ${filter.gender}` : ""}
+            </h2>
+          )}
+
+          <div
+            className="product-list"
+            style={{ marginTop: isHomePage ? "20px" : "60px" }}
+          >
             {productos.map((producto) => (
               <div
                 key={producto.id}
                 className="product-card"
+                aria-label="Producto"
                 onClick={() => handleProductClick(producto)}
                 style={{ cursor: 'pointer' }}
               >
@@ -228,6 +273,12 @@ const Content = ({ filter, sortBy = 'default' }) => {
                   <IconButton
                     onClick={(e) => {
                       e.stopPropagation();
+                      if (!user) {
+                        window.dispatchEvent(new CustomEvent('openAuthModal', {
+                          detail: { productId: producto.id }
+                        }));
+                        return;
+                      }
                       toggleFavorite(producto);
                     }}
                     sx={{
@@ -237,6 +288,7 @@ const Content = ({ filter, sortBy = 'default' }) => {
                         color: favorites.includes(producto.id) ? '#ff3333' : '#666'
                       }
                     }}
+                    aria-label="Agregar a favoritos"
                     className="favorite-button"
                   >
                     <FavoriteIcon />

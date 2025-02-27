@@ -10,7 +10,9 @@ async def get_producto(db: AsyncSession, producto_id: int):
     result = await db.execute(query)
     return result.scalars().first()
 
-async def get_productos(db: AsyncSession, categoria: str = None, genero: str = None, search_query: str = None, page: int = 1, limit: int = 15, sortBy: str = "default"):
+async def get_productos(db: AsyncSession, categoria: str = None, genero: str = None, 
+                    search_query: str = None, page: int = 1, limit: int = 15, 
+                    sortBy: str = "default"):
     query = select(Producto).join(Categoria)
     
     if categoria:
@@ -19,6 +21,8 @@ async def get_productos(db: AsyncSession, categoria: str = None, genero: str = N
         query = query.filter(Categoria.genero == genero)
     if search_query:
         query = query.filter(Producto.nombre.ilike(f"%{search_query}%"))
+    if sortBy == "created_at_desc":
+        query = query.order_by(Producto.created_at.desc())
     
     if sortBy and sortBy != "default":
         if sortBy == "price_asc":
@@ -29,6 +33,8 @@ async def get_productos(db: AsyncSession, categoria: str = None, genero: str = N
             query = query.order_by(Producto.nombre.asc(), Producto.id.asc())
         elif sortBy == "name_desc":
             query = query.order_by(Producto.nombre.desc(), Producto.id.desc())
+        elif sortBy == "createdAt_desc": 
+            query = query.order_by(Producto.createdAt.desc(), Producto.id.desc())
 
 
     count_query = select(func.count()).select_from(query)

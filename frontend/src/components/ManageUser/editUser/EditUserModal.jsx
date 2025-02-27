@@ -4,6 +4,8 @@ import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
 import { userService } from '../../../services/authService';
 import './EditUserModal.css';
+import { Eye, EyeOff } from 'lucide-react';
+import { IconButton, InputAdornment } from '@mui/material';
 
 const EditUserModal = ({ user, onClose, onUpdate }) => {
     const [userData, setUserData] = useState({
@@ -11,8 +13,9 @@ const EditUserModal = ({ user, onClose, onUpdate }) => {
         correo: user.correo,
         rol: user.rol,
         metodo_pago: user.metodo_pago || [],
-        contraseña: "" // Inicializamos como cadena vacía
+        contraseña: ""
     });
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -27,7 +30,7 @@ const EditUserModal = ({ user, onClose, onUpdate }) => {
             correo: userData.correo,
             rol: userData.rol,
             metodo_pago: userData.metodo_pago,
-            contraseña: userData.contraseña // Incluimos la contraseña ingresada
+            contraseña: userData.contraseña
         };
 
         try {
@@ -37,9 +40,9 @@ const EditUserModal = ({ user, onClose, onUpdate }) => {
             onClose();
         } catch (error) {
             console.error("Error al actualizar usuario:", error);
-            const errorMessage = error.response?.data?.detail?.detalles || 
-                                 error.response?.data?.detail ||
-                                 "Hubo un error al actualizar el usuario.";
+            const errorMessage = error.response?.data?.detail?.detalles ||
+                error.response?.data?.detail ||
+                "Hubo un error al actualizar el usuario.";
             alert(`Error: ${errorMessage}`);
         }
     };
@@ -58,6 +61,7 @@ const EditUserModal = ({ user, onClose, onUpdate }) => {
                                 value={userData.nombre}
                                 onChange={(e) => setUserData({ ...userData, nombre: e.target.value })}
                                 fullWidth
+                                aria-label="Nombre"
                                 variant="outlined"
                                 margin="normal"
                                 sx={{ marginTop: '5px', marginBottom: '5px' }}
@@ -68,6 +72,7 @@ const EditUserModal = ({ user, onClose, onUpdate }) => {
                             <TextField
                                 label="Correo Electrónico"
                                 type="email"
+                                aria-label="Correo electrónico"
                                 value={userData.correo}
                                 onChange={(e) => setUserData({ ...userData, correo: e.target.value })}
                                 fullWidth
@@ -95,14 +100,24 @@ const EditUserModal = ({ user, onClose, onUpdate }) => {
                         <div>
                             <TextField
                                 label="Contraseña Actual"
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 value={userData.contraseña}
                                 onChange={(e) => setUserData({ ...userData, contraseña: e.target.value })}
                                 fullWidth
+                                aria-label="Contraseña"
                                 variant="outlined"
                                 margin="normal"
                                 sx={{ marginTop: '5px', marginBottom: '5px' }}
                                 required
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton onClick={() => setShowPassword(prev => !prev)}>
+                                                {showPassword ? <EyeOff /> : <Eye />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                }}
                             />
                         </div>
 

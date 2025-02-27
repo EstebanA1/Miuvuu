@@ -1,6 +1,7 @@
 import json
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List
+from datetime import datetime
 
 class ProductoBase(BaseModel):
     nombre: str = Field(..., max_length=100)
@@ -9,6 +10,7 @@ class ProductoBase(BaseModel):
     cantidad: int
     categoria_id: int
     image_url: Optional[List[str]] = None
+    createdAt: Optional[datetime] = Field(None, alias="created_at")
 
     @validator('image_url', pre=True)
     def ensure_list(cls, value):

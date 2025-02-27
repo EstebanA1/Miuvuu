@@ -278,14 +278,16 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick, onSortChange 
           <div className="search-container">
             <input
               type="text"
+              aria-label="Buscar productos"
               value={searchQuery}
               onChange={handleSearchChange}
               onKeyDown={handleSearchKeyDown}
               ref={inputRef}
             />
-            <IconButton onClick={handleSearchIconClick}>
+            <IconButton onClick={handleSearchIconClick} aria-label="Buscar">
               <SearchIcon />
             </IconButton>
+
           </div>
           <FormControl size="small" className="sort-control">
             <Select
@@ -329,21 +331,22 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick, onSortChange 
 
 
           {authService.hasPermission('manage_favorites') && (
-            <IconButton onClick={() => navigate('/favoritos')}>
+            <IconButton onClick={() => navigate('/favoritos')} aria-label="Ir a favoritos">
               <FavoriteIcon />
             </IconButton>
           )}
           {authService.hasPermission('view_cart') && (
-            <IconButton onClick={() => navigate('/carrito')}>
+            <IconButton onClick={() => navigate('/carrito')} aria-label="Ir al carrito">
               <Badge badgeContent={cartCount} color="error">
                 <ShoppingCartIcon />
               </Badge>
             </IconButton>
           )}
 
-          <IconButton onClick={handleAccountClick}>
+          <IconButton onClick={handleAccountClick} aria-label="Acceder a la cuenta">
             <AccountCircleIcon />
           </IconButton>
+
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
@@ -357,7 +360,7 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick, onSortChange 
             <MenuItem onClick={handleLogout}>Cerrar Sesión</MenuItem>
           </Menu>
           {authService.hasPermission('all') && (
-            <IconButton onClick={handleManageAccounts}>
+            <IconButton onClick={handleManageAccounts} aria-label="Administrar cuentas">
               <ManageAccountsIcon />
             </IconButton>
           )}

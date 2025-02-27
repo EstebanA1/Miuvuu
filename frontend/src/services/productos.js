@@ -73,21 +73,28 @@ export const formatImageUrls = (imageUrls) => {
 export const getProductos = async (query = "") => {
   try {
     const response = await axios.get(`${BASE_URL}${query}`);
-    const { products, total } = response.data;
-    const formattedProducts = (products || []).map((producto) => ({
-      ...producto,
-      image_url: Array.isArray(producto.image_url)
-                  ? producto.image_url
-                  : producto.image_url,
+    const formattedProducts = response.data.products.map(p => ({
+      ...p,
+      createdAt: p.created_at ? new Date(p.created_at) : new Date() 
     }));
     
-    return {
-      products: formattedProducts,
-      total: total || formattedProducts.length,
-    };
+    return { products: formattedProducts, total: response.data.total };
   } catch (error) {
-    console.error("Error al obtener los productos:", error);
+    console.error("Error detallado:", error.response?.data);
     return { products: [], total: 0 };
+  }
+};
+
+export const getCarouselProducts = async () => {
+  try {
+    const response = await axios.get(`${BASE_URL}?sortBy=newest&limit=5`);
+    return response.data.products.map(p => ({
+      ...p,
+      createdAt: new Date(p.created_at) 
+    }));
+  } catch (error) {
+    console.error("Error backend:", error.response?.data);
+    return [];
   }
 };
 

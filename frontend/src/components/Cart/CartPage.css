@@ -58,7 +58,7 @@
 .quantity-controls button {
     padding: 0.3rem 0.8rem;
     border: 1px solid #ddd;
-    background: white;
+    background: #ffffff5e;
     cursor: pointer;
 }
 
@@ -66,7 +66,6 @@
     margin: 2rem 0;
     text-align: right;
     padding: 2rem;
-    background: #f8f9fa;
     border-radius: 8px;
     width: 800px;
     height: 200px;

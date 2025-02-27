@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, func
 from sqlalchemy.dialects.postgresql import JSONB
 from app.database import Base
 
@@ -12,3 +12,4 @@ class Producto(Base):
     cantidad = Column(Integer, nullable=False)
     categoria_id = Column(Integer, ForeignKey("categorias.id"), nullable=False)
     image_url = Column(JSONB, nullable=True) 
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

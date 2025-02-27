@@ -1,10 +1,12 @@
-// AddUserModal.jsx
 import React, { useState } from 'react';
 import { TextField, Button, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
 import { userService } from '../../../services/authService';
 import './AddUserModal.css';
+import { Eye, EyeOff } from 'lucide-react';
+import { IconButton, InputAdornment } from '@mui/material';
+
 
 const AddUserModal = ({ onClose, onAdd }) => {
     const [formData, setFormData] = useState({
@@ -16,6 +18,8 @@ const AddUserModal = ({ onClose, onAdd }) => {
     });
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const handleChange = (e) => {
         setFormData({
@@ -59,12 +63,12 @@ const AddUserModal = ({ onClose, onAdd }) => {
         <div className="modal">
             <div className="modal-addUser-content">
                 <h2 className="title-form">Añadir Nuevo Usuario</h2>
-                
+
                 <div className="modal-body">
                     <form onSubmit={handleSubmit}>
                         {error && <div className="error-message">{error}</div>}
                         {success && <div className="success-message">{success}</div>}
-                        
+
                         <div>
                             <TextField
                                 fullWidth
@@ -105,7 +109,7 @@ const AddUserModal = ({ onClose, onAdd }) => {
                                 fullWidth
                                 name="password"
                                 label="Contraseña"
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 value={formData.password}
                                 onChange={handleChange}
                                 variant="outlined"
@@ -115,6 +119,15 @@ const AddUserModal = ({ onClose, onAdd }) => {
                                     marginTop: '5px',
                                     marginBottom: '5px'
                                 }}
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton onClick={() => setShowPassword(prev => !prev)}>
+                                                {showPassword ? <EyeOff /> : <Eye />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                }}
                             />
                         </div>
 
@@ -123,7 +136,7 @@ const AddUserModal = ({ onClose, onAdd }) => {
                                 fullWidth
                                 name="confirmPassword"
                                 label="Confirmar Contraseña"
-                                type="password"
+                                type={showConfirmPassword ? "text" : "password"}
                                 value={formData.confirmPassword}
                                 onChange={handleChange}
                                 variant="outlined"
@@ -132,6 +145,15 @@ const AddUserModal = ({ onClose, onAdd }) => {
                                 sx={{
                                     marginTop: '5px',
                                     marginBottom: '5px'
+                                }}
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton onClick={() => setShowConfirmPassword(prev => !prev)}>
+                                                {showConfirmPassword ? <EyeOff /> : <Eye />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
                                 }}
                             />
                         </div>

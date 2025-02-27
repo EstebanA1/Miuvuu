@@ -66,7 +66,7 @@ const ManageUsersPage = () => {
                                 <th>Eliminar</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="table-body">
                             {users.map((user) => (
                                 <tr key={user.id}>
                                     <td>{user.id}</td>
@@ -84,7 +84,7 @@ const ManageUsersPage = () => {
                                     </td>
                                     <td>
                                         <IconButton
-                                            sx={{ color: 'rgb(244, 67, 54)'}}
+                                            sx={{ color: 'rgb(244, 67, 54)' }}
                                             onClick={() => setDeletingUser(user)}
                                             className="deleteIcon"
                                         >
