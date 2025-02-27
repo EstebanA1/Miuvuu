@@ -38,6 +38,10 @@ const Content = ({ filter, sortBy = 'default' }) => {
   const location = useLocation();
   const isHomePage = location.pathname === '/' && !filter.category && !filter.gender && !filter.searchQuery && currentPage === 1;
   const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
+  const marginTopValue =
+  (location.pathname === '/' && !filter.category && !filter.gender && !filter.searchQuery)
+    ? (currentPage === 1 ? "20px" : "90px")
+    : "30px";
 
   const sortProducts = (products, sortMethod) => {
     let sortedProducts = [...products];
@@ -252,7 +256,7 @@ const Content = ({ filter, sortBy = 'default' }) => {
 
           <div
             className="product-list"
-            style={{ marginTop: isHomePage ? "20px" : "60px" }}
+            style={{ marginTop: marginTopValue }}
           >
             {productos.map((producto) => (
               <div

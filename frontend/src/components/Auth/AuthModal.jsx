@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { authService } from '../../services/authService';
 import './AuthModal.css';
 import { Eye, EyeOff } from 'lucide-react';
 
-const AuthModal = ({ open, onClose }) => {
+const AuthModal = ({ open, onClose, headerVisible }) => {
     const [isActive, setIsActive] = useState(false);
     const [formData, setFormData] = useState({
         emailOrUsername: '',
@@ -16,29 +16,35 @@ const AuthModal = ({ open, onClose }) => {
     const [success, setSuccess] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [mouseDownOnOverlay, setMouseDownOnOverlay] = useState(false);
+    const modalRef = useRef(null);
+
+    // Cierra el modal si se hace clic fuera del contenedor
+    const handleClickOutside = (e) => {
+        if (modalRef.current && !modalRef.current.contains(e.target)) {
+            if (e.target.className.includes('auth-modal-overlay')) {
+                onClose();
+            }
+        }
+    };
+
+    useEffect(() => {
+        if (open) {
+            document.addEventListener('mousedown', handleClickOutside);
+            // Deshabilitar scroll cuando el modal está abierto
+            document.body.style.overflow = 'hidden';
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.body.style.overflow = 'auto';
+        };
+    }, [open, onClose]);
 
     const handleChange = (e) => {
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value
+            [e.target.name]: e.target.value,
         });
         setError('');
-    };
-
-    const handleOverlayMouseDown = (e) => {
-        if (e.target.className === 'modal-overlay') {
-            setMouseDownOnOverlay(true);
-        } else {
-            setMouseDownOnOverlay(false);
-        }
-    };
-
-    const handleOverlayMouseUp = (e) => {
-        if (e.target.className === 'modal-overlay' && mouseDownOnOverlay) {
-            onClose();
-        }
-        setMouseDownOnOverlay(false);
     };
 
     const handleLogin = async (e) => {
@@ -48,16 +54,12 @@ const AuthModal = ({ open, onClose }) => {
                 emailOrUsername: formData.emailOrUsername,
                 password: formData.password,
             });
-
             if (result.success) {
                 setSuccess('¡Inicio de sesión exitoso, cargando!');
-
                 const pendingProduct = localStorage.getItem('pendingProduct');
                 localStorage.removeItem('pendingProduct');
-
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                await new Promise((resolve) => setTimeout(resolve, 1500));
                 onClose();
-
                 if (pendingProduct) {
                     window.location.href = `/producto/${pendingProduct}`;
                 } else {
@@ -74,19 +76,16 @@ const AuthModal = ({ open, onClose }) => {
 
     const handleRegister = async (e) => {
         e.preventDefault();
-
         if (formData.password !== formData.confirmPassword) {
             setError('Las contraseñas no coinciden');
             return;
         }
-
         try {
             await authService.register({
                 email: formData.email,
                 password: formData.password,
                 nombre: formData.nombre,
             });
-
             setSuccess('¡Registro exitoso!');
             setTimeout(() => {
                 setIsActive(false);
@@ -99,7 +98,6 @@ const AuthModal = ({ open, onClose }) => {
                 });
                 window.location.reload();
             }, 2000);
-
         } catch (error) {
             if (error.detail && error.detail.includes('usuarios_correo_key')) {
                 setError('Este correo electrónico ya está registrado, utilizar otro.');
@@ -117,19 +115,19 @@ const AuthModal = ({ open, onClose }) => {
         }
     };
 
-    return open ? (
-        <div
-            className="modal-overlay"
-            onMouseDown={handleOverlayMouseDown}
-            onMouseUp={handleOverlayMouseUp}
-        >
-            <div className={`container ${isActive ? 'active' : ''}`}>
+    if (!open) return null;
+
+    const containerStyle = {
+        marginTop: headerVisible ? '-158px' : '0px' 
+    };
+
+    return (
+        <div className="auth-modal-overlay">
+            <div ref={modalRef} className={`container ${isActive ? 'active' : ''}`} style={containerStyle}>
                 <div className="form-container sign-up">
                     <form onSubmit={handleRegister}>
                         <h1>Crear Cuenta</h1>
-                        <div className="social-icons">
-
-                        </div>
+                        <div className="social-icons"></div>
                         {error && <div className="error-message">{error}</div>}
                         {success && <div className="success-message">{success}</div>}
                         <input
@@ -139,7 +137,7 @@ const AuthModal = ({ open, onClose }) => {
                             value={formData.nombre}
                             onChange={handleChange}
                             required
-                            autoComplete='off'
+                            autoComplete="off"
                         />
                         <input
                             type="email"
@@ -148,11 +146,19 @@ const AuthModal = ({ open, onClose }) => {
                             value={formData.email}
                             onChange={handleChange}
                             required
-                            autoComplete='off'
+                            autoComplete="off"
                         />
                         <div className="password-input">
-                            <input type={showPassword ? "text" : "password"} placeholder="Contraseña" name="password" value={formData.password} onChange={handleChange} required autoComplete='off' />
-                            <button className='showPS' type="button" onClick={() => togglePasswordVisibility('password')}>
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Contraseña"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                required
+                                autoComplete="off"
+                            />
+                            <button className="showPS" type="button" onClick={() => togglePasswordVisibility('password')}>
                                 {showPassword ? <EyeOff /> : <Eye />}
                             </button>
                         </div>
@@ -166,16 +172,11 @@ const AuthModal = ({ open, onClose }) => {
                                 required
                                 autoComplete="off"
                             />
-                            <button
-                                className="showPS2"
-                                type="button"
-                                onClick={() => togglePasswordVisibility("confirmPassword")}
-                            >
+                            <button className="showPS2" type="button" onClick={() => togglePasswordVisibility("confirmPassword")}>
                                 {showConfirmPassword ? <EyeOff /> : <Eye />}
                             </button>
                         </div>
-
-                        <button className='registerBT' type="submit">Registrarse</button>
+                        <button className="registerBT" type="submit">Registrarse</button>
                     </form>
                 </div>
 
@@ -205,7 +206,7 @@ const AuthModal = ({ open, onClose }) => {
                             value={formData.emailOrUsername}
                             onChange={handleChange}
                             required
-                            autoComplete='off'
+                            autoComplete="off"
                         />
                         <input
                             type={showPassword ? "text" : "password"}
@@ -216,11 +217,7 @@ const AuthModal = ({ open, onClose }) => {
                             required
                             autoComplete="off"
                         />
-                        <button
-                            className="showPS3"
-                            type="button"
-                            onClick={() => togglePasswordVisibility("password")}
-                        >
+                        <button className="showPS3" type="button" onClick={() => togglePasswordVisibility("password")}>
                             {showPassword ? <EyeOff /> : <Eye />}
                         </button>
                         <a href="#">¿Olvidaste tu contraseña?</a>
@@ -242,10 +239,9 @@ const AuthModal = ({ open, onClose }) => {
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
-    ) : null;
+    );
 };
 
 export default AuthModal;

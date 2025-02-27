@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { formatImageUrl } from "../../services/productos";
+import { authService } from "../../services/authService"; 
 import "./Carousel.css";
 
 const Carousel = ({ productos = [] }) => {
@@ -13,7 +14,6 @@ const Carousel = ({ productos = [] }) => {
   const [isChanging, setIsChanging] = useState(false);
   const navigate = useNavigate();
 
-  // Precarga de imágenes
   useEffect(() => {
     if (total === 0) return;
     displayProducts.forEach((product) => {
@@ -22,7 +22,6 @@ const Carousel = ({ productos = [] }) => {
     });
   }, [displayProducts, total]);
 
-  // Transición automática: se activa solo si no hay una transición en curso
   useEffect(() => {
     if (total === 0 || isChanging) return;
     const timer = setTimeout(() => {
@@ -31,9 +30,8 @@ const Carousel = ({ productos = [] }) => {
     return () => clearTimeout(timer);
   }, [currentIndex, total, isChanging]);
 
-  // Función central para manejar la transición (manual o automática)
   const triggerTransition = (newIndex) => {
-    if (isChanging) return; // Evita solapamientos
+    if (isChanging) return; 
     setTransitionTo(newIndex);
     setIsChanging(true);
     setTimeout(() => {
@@ -60,13 +58,16 @@ const Carousel = ({ productos = [] }) => {
   };
 
   const handleViewDetails = (productId) => {
+    const user = authService.getCurrentUser();
+    if (!user) {
+      window.dispatchEvent(new CustomEvent("openAuthModal", { detail: { productId } }));
+      return;
+    }
     navigate(`/producto/${productId}`);
   };
 
   if (total === 0) return null;
 
-  // Mientras se está en transición, usamos transitionTo como imagen de destino;
-  // de lo contrario, se muestra el mismo fondo que el actual para evitar cambios indeseados.
   const upcomingIndex = isChanging && transitionTo !== null ? transitionTo : currentIndex;
   const currentProduct = displayProducts[currentIndex];
 

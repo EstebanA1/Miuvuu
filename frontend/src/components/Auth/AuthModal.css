@@ -1,10 +1,9 @@
-
-.modal-overlay {
+.auth-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 100vh;
+    height: 122vh;
     background: rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
@@ -113,11 +112,15 @@
 }
 
 @keyframes move {
-    0%, 49.99% {
+
+    0%,
+    49.99% {
         opacity: 0;
         z-index: 1;
     }
-    50%, 100% {
+
+    50%,
+    100% {
         opacity: 1;
         z-index: 5;
     }
@@ -168,7 +171,6 @@
     color: #fff;
     position: relative;
     left: -100%;
-    height: 100%;
     width: 200%;
     transform: translateX(0);
     transition: all 0.6s ease-in-out;
@@ -189,7 +191,6 @@
     padding: 0 30px;
     text-align: center;
     top: 0;
-    transform: translateX(0);
     transition: all 0.6s ease-in-out;
 }
 
@@ -222,35 +223,42 @@
     font-size: 14px;
 }
 
-.password-input{
+.password-input {
     width: 100%;
     margin-left: -30px;
+    position: relative;
 }
 
-.showPS, .showPS2, .showPS3 {
+.showPS,
+.showPS2,
+.showPS3 {
     position: absolute;
     right: 35px;
-    background-color: transparent !important; 
+    background-color: transparent !important;
     color: #777 !important;
     padding: 5px 20px !important;
 }
 
-.showPS:hover, .showPS2:hover, .showPS3:hover {
-    color: #555; 
+.showPS:hover,
+.showPS2:hover,
+.showPS3:hover {
+    color: #555;
 }
 
 .showPS {
-    margin-top: -9%;
+    margin-top: -12%;
+    margin-right: -20%;
 }
 
 .showPS2 {
-    margin-top: -9%;
+    margin-top: -12%;
+    margin-right: -20%;
 }
 
 .showPS3 {
     margin-top: 29%;
 }
 
-.registerBT{
+.registerBT {
     margin-top: 20px;
 }

@@ -367,7 +367,11 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick, onSortChange 
 
         </div>
       </div>
-      <AuthModal open={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      <AuthModal
+        open={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        headerVisible={isVisible}
+      />
     </header>
   );
 };
