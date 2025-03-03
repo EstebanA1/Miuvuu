@@ -39,9 +39,9 @@ const Content = ({ filter, sortBy = 'default' }) => {
   const isHomePage = location.pathname === '/' && !filter.category && !filter.gender && !filter.searchQuery && currentPage === 1;
   const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
   const marginTopValue =
-  (location.pathname === '/' && !filter.category && !filter.gender && !filter.searchQuery)
-    ? (currentPage === 1 ? "20px" : "90px")
-    : "30px";
+    (location.pathname === '/' && !filter.category && !filter.gender && !filter.searchQuery)
+      ? (currentPage === 1 ? "20px" : "90px")
+      : "30px";
 
   const sortProducts = (products, sortMethod) => {
     let sortedProducts = [...products];
@@ -232,20 +232,16 @@ const Content = ({ filter, sortBy = 'default' }) => {
       )}
 
       {modalState.add && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <AddProductForm
-              closeModal={() => handleCloseModal("add")}
-              onSuccess={fetchProductos}
-            />
-          </div>
-        </div>
+        <AddProductForm
+          closeModal={() => handleCloseModal("add")}
+          onSuccess={fetchProductos}
+        />
       )}
 
       <div className="centerContainer">
         <div
           className="center-content">
-          
+
           {isHomePage && <h1 className="content-title">Nuestros Productos</h1>}
 
           {(filter.category || filter.gender) && (

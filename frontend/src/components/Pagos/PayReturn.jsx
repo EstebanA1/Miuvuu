@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { API_URL } from '../../config/config';
 import axios from 'axios';
 
 const PayReturn = () => {
@@ -17,8 +18,8 @@ const PayReturn = () => {
             }
 
             try {
-                // const response = await axios.post('http://localhost:8000/api/pagos/webpay/confirm', {
-                const response = await axios.post('https://miuvuu.railway.app/api/pagos/webpay/confirm', {
+                const response = await axios.post(`${API_URL}/api/pagos/webpay/confirm`, {
+                // const response = await axios.post('https://miuvuu.railway.app/api/pagos/webpay/confirm', {
                     token: token
                 });
 

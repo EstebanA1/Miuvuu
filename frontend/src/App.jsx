@@ -13,7 +13,7 @@ import ProductDetail from "./components/Productos/DetailsProduct/DetailsProduct"
 import FavoritesPage from './components/Favorites/FavoritePage';
 import { FavoritesProvider } from './context/FavoritesContext';
 import AuthCallback from './components/Auth/AuthCallback';
-import ErrorPage from './components/Errorpage/ErrorPage';
+import ErrorPage from './components/ErrorPage/ErrorPage';
 import { ProtectedRoute } from './config/ProtectedRoute';
 import AuthModal from './components/Auth/AuthModal';
 import { CartProvider } from './context/CartContext';

@@ -18,4 +18,4 @@ COPY backend/ .
 
 
 # Comando para ejecutar la aplicación con --reload para desarrollo
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

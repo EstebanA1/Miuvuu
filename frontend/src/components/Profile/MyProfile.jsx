@@ -6,7 +6,7 @@ import { Select, MenuItem, Checkbox } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { Eye, EyeOff } from 'lucide-react';
-import './myProfile.css';
+import './MyProfile.css';
 
 const MyProfile = () => {
     const [user, setUser] = useState(null);
