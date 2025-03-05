@@ -122,7 +122,7 @@ const MyProfile = () => {
 
     return (
         <div className="containerProfile">
-            <Card className="max-w-2xl mx-auto" sx={{ backgroundColor: '#f9f9f9'}}>
+            <Card className="max-w-2xl mx-auto" sx={{ backgroundColor: '#0000ff00'}}>
                 <CardContent>
                     {error && <Alert severity="error" className="mb-4">{error}</Alert>}
                     {success && <Alert severity="success" className="mb-4">{success}</Alert>}
