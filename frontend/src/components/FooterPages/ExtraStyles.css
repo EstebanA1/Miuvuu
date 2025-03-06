@@ -11,3 +11,10 @@
     justify-content: center;
     margin: 1rem 12rem;
 }
+
+@media (max-width: 768px) {
+    .page-container p {
+        margin: 1rem 2rem;
+        font-size: 1rem;
+    }
+}

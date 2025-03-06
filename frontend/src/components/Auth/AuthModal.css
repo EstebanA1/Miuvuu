@@ -265,12 +265,12 @@
 
 @media (max-width: 768px) {
     .container {
-        width: 12rem;
-        min-height: 20rem;
+        width: 23rem;
+        min-height: 35rem;
     }
 
     .toggle-panel {
-        width: 34%;
+        width: 50%;
     }
 
     .container p {
@@ -285,7 +285,7 @@
     }
 
     .container input {
-        width: 9rem;
+        width: 11rem;
         margin-left: -2rem;
         margin-right: -3rem;
     }

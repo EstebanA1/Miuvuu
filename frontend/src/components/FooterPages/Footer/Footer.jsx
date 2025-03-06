@@ -39,7 +39,7 @@ const Footer = () => {
             <li><a href="/privacy">Políticas de privacidad</a></li>
             <li>
               <a
-                href="https://mail.google.com/mail/?view=cm&fs=1&to=stbnrivasa@gmail.com"
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=stbnrivasa@gmail.com&su=Consulta%20sobre%20Miuvuu&body="
                 target="_blank"
                 rel="noopener noreferrer"
               >
