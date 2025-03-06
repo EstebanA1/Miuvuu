@@ -162,7 +162,7 @@
   }
   
   .sort-control .MuiSvgIcon-root {
-    margin-right: 8px;
+    margin-left: 16px;
   }
   
   @media (max-width: 478px) {

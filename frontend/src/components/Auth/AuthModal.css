@@ -45,7 +45,7 @@
     background-color: #2c1254;
     color: #fff;
     font-size: 12px;
-    padding: 10px 45px;
+    padding: 10px 35px;
     border: 1px solid transparent;
     border-radius: 8px;
     font-weight: 600;
@@ -266,7 +266,7 @@
 @media (max-width: 768px) {
     .container {
         width: 23rem;
-        min-height: 35rem;
+        min-height: 32rem;
     }
 
     .toggle-panel {
@@ -285,9 +285,10 @@
     }
 
     .container input {
-        width: 11rem;
+        width: 10rem;
         margin-left: -2rem;
-        margin-right: -3rem;
+        margin-right: -2rem;
+        font-size: 0.5em;
     }
 
     .google-button {
@@ -301,17 +302,19 @@
 
     .showPS,
     .showPS2 {
-        margin-top: -2.8rem;
-    }
-    .showPS {
-        margin-right: -7.5rem;
-    }
-    .showPS2 {
-        margin-right: -7.6rem;
+        margin-top: -2.5rem;
     }
 
-    .showPS3 { 
-        margin-top: 13.2rem;
+    .showPS {
+        margin-right: -7.0rem;
+    }
+
+    .showPS2 {
+        margin-right: -6.9rem;
+    }
+
+    .showPS3 {
+        margin-top: 10.8rem;
         margin-right: -2rem;
     }
 
@@ -325,16 +328,44 @@
         margin-left: 1.5rem;
         font-size: 10px;
     }
+
+    .container bottom {
+        padding: 10px 25px;
+    }
+
+    h1{
+        font-size: 1.5em;
+    }
 }
 
 
 @media (min-width: 769px) {
     .container {
-        width: 35rem;
+        width: 55rem;
+        height: 45rem;
+    }
+
+    .container input{
+        width: 110%;
+        padding: 13px 15px;
+    }
+
+    .showPS {
+        margin-top: -2.8rem;
+        margin-right: -4.4rem;
+    }
+
+    .showPS2 {
+        margin-top: -2.8rem;
+        margin-right: -4.4rem;
     }
 
     .showPS3 {
-        margin-top: 8.5rem;
+        margin-top: 9rem;
+        margin-right: 0.5rem;
+    }
+
+    .toggle-panel {
+        width: 50%;
     }
 }
-
