@@ -188,7 +188,7 @@ const AuthModal = ({ open, onClose, headerVisible }) => {
                                 className="google-button"
                                 onClick={() => {
                                     console.log('Botón de Google clickeado');
-                                    window.location.href = `https://miuvuu-production.up.railway.app/api/auth/google/callback`;
+                                    window.location.href = "https://miuvuu-production.up.railway.app/api/auth/google/login";
                                 }}
                             >
                                 <img src="/google.svg" alt="Google Icon" className="google-icon" />
