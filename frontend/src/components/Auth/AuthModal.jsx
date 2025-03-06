@@ -18,7 +18,6 @@ const AuthModal = ({ open, onClose, headerVisible }) => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const modalRef = useRef(null);
 
-    // Cierra el modal si se hace clic fuera del contenedor
     const handleClickOutside = (e) => {
         if (modalRef.current && !modalRef.current.contains(e.target)) {
             if (e.target.className.includes('auth-modal-overlay')) {
@@ -30,7 +29,6 @@ const AuthModal = ({ open, onClose, headerVisible }) => {
     useEffect(() => {
         if (open) {
             document.addEventListener('mousedown', handleClickOutside);
-            // Deshabilitar scroll cuando el modal está abierto
             document.body.style.overflow = 'hidden';
         }
         return () => {
@@ -221,7 +219,7 @@ const AuthModal = ({ open, onClose, headerVisible }) => {
                             {showPassword ? <EyeOff /> : <Eye />}
                         </button>
                         <a href="#">¿Olvidaste tu contraseña?</a>
-                        <button type="submit">Iniciar Sesión</button>
+                        <button className="loginBT" type="submit">Iniciar Sesión</button>
                     </form>
                 </div>
 

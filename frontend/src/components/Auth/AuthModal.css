@@ -42,7 +42,7 @@
 }
 
 .container button {
-    background-color: #a78189;
+    background-color: #2c1254;
     color: #fff;
     font-size: 12px;
     padding: 10px 45px;
@@ -167,7 +167,7 @@
 
 .toggle {
     height: 100%;
-    background: linear-gradient(to right, #df8d78, #2c024f);
+    background: linear-gradient(to right, #309e7f, #2c024f);
     color: #fff;
     position: relative;
     left: -100%;
@@ -261,4 +261,79 @@
 
 .registerBT {
     margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+    .container {
+        width: 12rem;
+        min-height: 20rem;
+    }
+
+    .toggle-panel {
+        width: 34%;
+    }
+
+    .container p {
+        width: 8.8rem;
+    }
+
+    .container button.hidden {
+        width: 10rem;
+        margin-left: 1rem;
+        margin-right: 1rem;
+        padding: 10px;
+    }
+
+    .container input {
+        width: 9rem;
+        margin-left: -2rem;
+        margin-right: -3rem;
+    }
+
+    .google-button {
+        margin-left: -2.5rem;
+        width: 10rem;
+    }
+
+    .container span {
+        width: 8rem;
+    }
+
+    .showPS,
+    .showPS2 {
+        margin-top: -2.8rem;
+    }
+    .showPS {
+        margin-right: -7.5rem;
+    }
+    .showPS2 {
+        margin-right: -7.6rem;
+    }
+
+    .showPS3 { 
+        margin-top: 13.2rem;
+        margin-right: -2rem;
+    }
+
+    .loginBT {
+        width: max-content;
+        margin-left: 5px;
+    }
+
+    .container a {
+        width: 8rem;
+        margin-left: 1.5rem;
+        font-size: 10px;
+    }
+}
+
+
+@media (min-width: 769px) {
+    .container {
+        width: 35rem;
+    }
+
+    .showPS3 {
+        margin-top: 8.5rem;
+    }
 }

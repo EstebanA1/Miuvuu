@@ -39,6 +39,7 @@
   margin: 0 10px;
   z-index: 10;
   position: relative;
+  width: max-content;
 }
 
 .carousel-button-container button:hover {
