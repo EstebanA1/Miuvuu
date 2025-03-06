@@ -149,3 +149,39 @@
     color: #121212;
     margin-top: 6px;
 }
+
+@media (max-width: 900px){
+    .cart-item{
+        width: max-content;
+    }
+
+    .cart-items{
+        align-items: center;
+    }
+}
+
+@media (max-width: 500px){
+    .cart-page
+    {
+        margin: 0;
+    }
+
+    .cart-item img {
+        width: 110px;
+    }
+
+    .cart-item {
+        gap: 1rem;
+    }
+
+    .cart-summary{
+        width: 100%;
+        text-align: center;
+        padding: 0;
+    }
+
+    .item-info{
+        width: 6rem;
+    }
+}
+

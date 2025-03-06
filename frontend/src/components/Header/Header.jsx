@@ -1,5 +1,7 @@
 import "./Header.css";
-import { IconButton, Badge } from '@mui/material';
+import { IconButton, Badge, Drawer, List, ListItem, ListItemText, Divider } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import miuvuuLogo from "@assets/miuvuuIcon.svg";
 import SearchIcon from '@mui/icons-material/Search';
 import { getCategorias } from "../../services/categorias";
@@ -17,6 +19,7 @@ import { useCart } from '../../context/CartContext';
 import SortIcon from '@mui/icons-material/Sort';
 import Select from '@mui/material/Select';
 import FormControl from '@mui/material/FormControl';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 const Header = ({ onCategorySelect, onSearch, filter, onHomeClick, onSortChange }) => {
   const [isVisible, setIsVisible] = useState(true);
@@ -35,6 +38,12 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick, onSortChange 
   const isFirstRender = useRef(true);
   const { cartCount } = useCart();
   const [sortBy, setSortBy] = useState('default');
+
+  // Estados y funciones para el menú mobile
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedMobileGenre, setSelectedMobileGenre] = useState(null);
+
+  const isMobile = useMediaQuery('(max-width:600px)');
 
   const handleSortChange = (event) => {
     const value = event.target.value;
@@ -157,7 +166,6 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick, onSortChange 
       try {
         const data = await getCategorias();
         setCategorias(data);
-
         const generosUnicos = [...new Set(data.map((categoria) => categoria.genero))];
         setGeneros(generosUnicos);
       } catch (error) {
@@ -167,6 +175,30 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick, onSortChange 
 
     fetchCategorias();
   }, []);
+
+  // Funciones para el menú mobile
+  const handleMobileMenuOpen = () => {
+    setMobileMenuOpen(true);
+  };
+
+  const handleMobileMenuClose = () => {
+    setMobileMenuOpen(false);
+    setSelectedMobileGenre(null);
+  };
+
+  const handleMobileGenreClick = (genre) => {
+    setSelectedMobileGenre(genre);
+  };
+
+  const handleMobileCategorySelect = (category, genre) => {
+    onCategorySelect(category, genre);
+    handleMobileMenuClose();
+  };
+
+  const handleMobileGenreSelect = (genre) => {
+    onCategorySelect(null, genre);
+    handleMobileMenuClose();
+  };
 
   const handleMouseEnter = (genero) => {
     if (hideTimeout) {
@@ -219,160 +251,236 @@ const Header = ({ onCategorySelect, onSearch, filter, onHomeClick, onSortChange 
   }, [user]);
 
   return (
-    <header className={`header ${isDarkMode ? 'dark-mode' : ''} ${isVisible ? 'visible' : 'hidden'}`}>
-      <div className="header-content">
-        <div
-          className="logo-section"
-          onClick={(e) => {
-            e.preventDefault();
-            onHomeClick();
-          }}
-          style={{ cursor: "pointer" }}
-        >
-          <img src={miuvuuLogo} alt="Miuvuu Logo" className="logo" />
-          <span className="logo-text">Miuvuu</span>
-        </div>
-
-        <div
-          className={`header-selecters ${user ? (user.isAdmin ? 'admin' : 'logged-in') : 'logged-out'}`}
-        >
-          <nav className="categories">
-            <ul>
-              {generos.map((genero) => (
-                <li
-                  key={genero}
-                  onMouseEnter={() => handleMouseEnter(genero)}
-                  onMouseLeave={handleMouseLeave}
-                  onClick={() => handleGeneroClick(genero)}
-                  className="category-item"
-                >
-                  {genero}
-                </li>
-              ))}
-            </ul>
-            {hoveredGenero && (
-              <div
-                className="subcategories"
-                onMouseEnter={() => handleMouseEnter(hoveredGenero)}
-                onMouseLeave={handleMouseLeave}
-              >
-                <ul>
-                  {categorias
-                    .filter((categoria) => categoria.genero === hoveredGenero)
-                    .map((categoria) => (
-                      <li
-                        key={categoria.id}
-                        onClick={() => onCategorySelect(categoria.nombre, hoveredGenero)}
-                        className="subcategory-item"
-                      >
-                        {categoria.nombre}
-                      </li>
-                    ))}
-                </ul>
-              </div>
-            )}
-          </nav>
-        </div>
-
-        <div className="header-icons">
-          <div className="search-container">
-            <input
-              type="text"
-              aria-label="Buscar productos"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              onKeyDown={handleSearchKeyDown}
-              ref={inputRef}
-            />
-            <IconButton onClick={handleSearchIconClick} aria-label="Buscar">
-              <SearchIcon />
-            </IconButton>
-
-          </div>
-          <FormControl size="small" className="sort-control">
-            <Select
-              value={sortBy}
-              onChange={handleSortChange}
-              displayEmpty
-              variant="outlined"
-              startAdornment={<SortIcon />}
-              renderValue={() => ''}
-              sx={{
-                height: 30,
-                width: 80,
-                marginRight: 2,
-                backgroundColor: 'rgba(69, 69, 69, 0.08)',
-                borderRadius: '4px',
-                transition: 'none',
-                '& .MuiOutlinedInput-notchedOutline': {
-                  border: '1px solid transparent'
-                },
-                '&:hover .MuiOutlinedInput-notchedOutline': {
-                  border: '1px solid transparent'
-                },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  border: '1px solid transparent'
-                },
-                '&:hover': {
-                  backgroundColor: 'rgba(69, 69, 69, 0.08)'
-                },
-                '&.Mui-focused': {
-                  backgroundColor: 'rgba(69, 69, 69, 0.08)'
-                }
-              }}
-            >
-              <MenuItem value="default">Por defecto</MenuItem>
-              <MenuItem value="price_asc">Precio: Menor a Mayor</MenuItem>
-              <MenuItem value="price_desc">Precio: Mayor a Menor</MenuItem>
-              <MenuItem value="name_asc">Nombre: A-Z</MenuItem>
-              <MenuItem value="name_desc">Nombre: Z-A</MenuItem>
-            </Select>
-          </FormControl>
-
-
-          {authService.hasPermission('manage_favorites') && (
-            <IconButton onClick={() => navigate('/favoritos')} aria-label="Ir a favoritos">
-              <FavoriteIcon />
-            </IconButton>
-          )}
-          {authService.hasPermission('view_cart') && (
-            <IconButton onClick={() => navigate('/carrito')} aria-label="Ir al carrito">
-              <Badge badgeContent={cartCount} color="error">
-                <ShoppingCartIcon />
-              </Badge>
+    <>
+      <header className={`header ${isDarkMode ? 'dark-mode' : ''} ${isVisible ? 'visible' : 'hidden'}`}>
+        <div className="header-content">
+          {/* Botón menú solo en mobile */}
+          {isMobile && (
+            <IconButton onClick={handleMobileMenuOpen} aria-label="Menú" className="mobile-menu-button">
+              <MenuIcon />
             </IconButton>
           )}
 
-          <IconButton onClick={handleAccountClick} aria-label="Acceder a la cuenta">
-            <AccountCircleIcon />
-          </IconButton>
-
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
+          {/* Logo centrado */}
+          <div
+            className="logo-section"
+            onClick={(e) => {
+              e.preventDefault();
+              onHomeClick();
+            }}
+            style={{ cursor: "pointer", textAlign: "center" }}
           >
-            <MenuItem onClick={() => {
-              navigate('/profile');
-              handleMenuClose();
-            }}>Mi Perfil</MenuItem>
-            <MenuItem onClick={handleMenuClose}>Mis Pedidos</MenuItem>
-            <MenuItem onClick={handleLogout}>Cerrar Sesión</MenuItem>
-          </Menu>
-          {authService.hasPermission('all') && (
-            <IconButton onClick={handleManageAccounts} aria-label="Administrar cuentas">
-              <ManageAccountsIcon />
-            </IconButton>
+            <img src={miuvuuLogo} alt="Miuvuu Logo" className="logo" />
+            <span className="logo-text">Miuvuu</span>
+          </div>
+
+          {/* Se muestran los géneros y subcategorías solo en pantallas grandes */}
+          {!isMobile && (
+            <div className={`header-selecters ${user ? (user.isAdmin ? 'admin' : 'logged-in') : 'logged-out'}`}>
+              <nav className="categories">
+                <ul>
+                  {generos.map((genero) => (
+                    <li
+                      key={genero}
+                      onMouseEnter={() => handleMouseEnter(genero)}
+                      onMouseLeave={handleMouseLeave}
+                      onClick={() => handleGeneroClick(genero)}
+                      className="category-item"
+                    >
+                      {genero}
+                    </li>
+                  ))}
+                </ul>
+                {hoveredGenero && (
+                  <div
+                    className="subcategories"
+                    onMouseEnter={() => handleMouseEnter(hoveredGenero)}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    <ul>
+                      {categorias
+                        .filter((categoria) => categoria.genero === hoveredGenero)
+                        .map((categoria) => (
+                          <li
+                            key={categoria.id}
+                            onClick={() => onCategorySelect(categoria.nombre, hoveredGenero)}
+                            className="subcategory-item"
+                          >
+                            {categoria.nombre}
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                )}
+              </nav>
+            </div>
           )}
 
+          {/* Íconos a la derecha */}
+          <div className="header-icons">
+            {/* En desktop se muestran el buscador y ordenamiento en el header */}
+            {!isMobile && (
+              <>
+                <div className="search-container">
+                  <input
+                    type="text"
+                    aria-label="Buscar productos"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    onKeyDown={handleSearchKeyDown}
+                    ref={inputRef}
+                  />
+                  <IconButton onClick={handleSearchIconClick} aria-label="Buscar">
+                    <SearchIcon />
+                  </IconButton>
+                </div>
+                <div className="sort-control-div">
+                  <FormControl size="small" className="sort-control">
+                    <Select
+                      value={sortBy}
+                      onChange={handleSortChange}
+                      displayEmpty
+                      variant="outlined"
+                      startAdornment={<SortIcon />}
+                      renderValue={() => ''}
+                      sx={{
+                        height: 30,
+                        width: 80,
+                        marginRight: 2,
+                        backgroundColor: 'rgba(69, 69, 69, 0.08)',
+                        borderRadius: '4px',
+                        transition: 'none',
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          border: '1px solid transparent'
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          border: '1px solid transparent'
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          border: '1px solid transparent'
+                        },
+                        '&:hover': {
+                          backgroundColor: 'rgba(69, 69, 69, 0.08)'
+                        },
+                        '&.Mui-focused': {
+                          backgroundColor: 'rgba(69, 69, 69, 0.08)'
+                        }
+                      }}
+                    >
+                      <MenuItem value="default">Por defecto</MenuItem>
+                      <MenuItem value="price_asc">Precio: Menor a Mayor</MenuItem>
+                      <MenuItem value="price_desc">Precio: Mayor a Menor</MenuItem>
+                      <MenuItem value="name_asc">Nombre: A-Z</MenuItem>
+                      <MenuItem value="name_desc">Nombre: Z-A</MenuItem>
+                    </Select>
+                  </FormControl>
+                </div>
+              </>
+            )}
+            {authService.hasPermission('manage_favorites') && (
+              <IconButton onClick={() => navigate('/favoritos')} aria-label="Ir a favoritos">
+                <FavoriteIcon />
+              </IconButton>
+            )}
+            {authService.hasPermission('view_cart') && (
+              <IconButton onClick={() => navigate('/carrito')} aria-label="Ir al carrito">
+                <Badge badgeContent={cartCount} color="error">
+                  <ShoppingCartIcon />
+                </Badge>
+              </IconButton>
+            )}
+            <IconButton onClick={handleAccountClick} aria-label="Acceder a la cuenta">
+              <AccountCircleIcon />
+            </IconButton>
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+              <MenuItem onClick={() => { navigate('/profile'); handleMenuClose(); }}>Mi Perfil</MenuItem>
+              <MenuItem onClick={handleLogout}>Cerrar Sesión</MenuItem>
+            </Menu>
+            {authService.hasPermission('all') && (
+              <IconButton onClick={handleManageAccounts} aria-label="Administrar cuentas">
+                <ManageAccountsIcon />
+              </IconButton>
+            )}
+          </div>
         </div>
-      </div>
-      <AuthModal
-        open={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-        headerVisible={isVisible}
-      />
-    </header>
+        <AuthModal open={authModalOpen} onClose={() => setAuthModalOpen(false)} headerVisible={isVisible} />
+      </header>
+
+      {isMobile && (
+        <Drawer anchor="left" open={mobileMenuOpen} onClose={handleMobileMenuClose}>
+          <div style={{ width: 250, padding: '10px' }}>
+            <div className="drawer-header" >
+              <div className="drawer-search" style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                <input
+                  type="text"
+                  placeholder="Buscar productos..."
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  onKeyDown={handleSearchKeyDown}
+                  style={{
+                    flex: 1,
+                    padding: '5px 8px',
+                    borderRadius: '4px',
+                    backgroundColor: 'rgba(69, 69, 69, 0.08)',
+                    border: '1px solid transparent'
+                  }}
+                />
+                <IconButton onClick={handleSearchIconClick} aria-label="Buscar">
+                  <SearchIcon />
+                </IconButton>
+              </div>
+              <div className="drawer-sort">
+                <FormControl size="small" style={{ width: '100%' }}>
+                  <Select
+                    value={sortBy}
+                    onChange={handleSortChange}
+                    displayEmpty
+                    variant="outlined"
+                    startAdornment={<SortIcon />}
+                    renderValue={() => 'Ordenar'}
+                    style={{ backgroundColor: 'rgba(69, 69, 69, 0.08)', borderRadius: '4px' }}
+                  >
+                    <MenuItem value="default">Por defecto</MenuItem>
+                    <MenuItem value="price_asc">Precio: Menor a Mayor</MenuItem>
+                    <MenuItem value="price_desc">Precio: Mayor a Menor</MenuItem>
+                    <MenuItem value="name_asc">Nombre: A-Z</MenuItem>
+                    <MenuItem value="name_desc">Nombre: Z-A</MenuItem>
+                  </Select>
+                </FormControl>
+              </div>
+            </div>
+            <Divider />
+            {/* Menú lateral para géneros y categorías */}
+            {selectedMobileGenre ? (
+              <List>
+                <ListItem button onClick={() => setSelectedMobileGenre(null)}>
+                  <ArrowBackIcon />
+                  <ListItemText primary="Volver" />
+                </ListItem>
+                <ListItem button onClick={() => handleMobileGenreSelect(selectedMobileGenre)}>
+                  <ListItemText primary={`Todos en ${selectedMobileGenre}`} />
+                </ListItem>
+                {categorias
+                  .filter(categoria => categoria.genero === selectedMobileGenre)
+                  .map(categoria => (
+                    <ListItem button key={categoria.id} onClick={() => handleMobileCategorySelect(categoria.nombre, selectedMobileGenre)}>
+                      <ListItemText primary={categoria.nombre} />
+                    </ListItem>
+                  ))}
+              </List>
+            ) : (
+              <List>
+                {generos.map((genre) => (
+                  <ListItem button key={genre} onClick={() => handleMobileGenreClick(genre)}>
+                    <ListItemText primary={genre} />
+                  </ListItem>
+                ))}
+              </List>
+            )}
+          </div>
+        </Drawer>
+      )}
+    </>
   );
 };
 

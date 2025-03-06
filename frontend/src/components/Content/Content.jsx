@@ -38,10 +38,28 @@ const Content = ({ filter, sortBy = 'default' }) => {
   const location = useLocation();
   const isHomePage = location.pathname === '/' && !filter.category && !filter.gender && !filter.searchQuery && currentPage === 1;
   const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
-  const marginTopValue =
-    (location.pathname === '/' && !filter.category && !filter.gender && !filter.searchQuery)
-      ? (currentPage === 1 ? "20px" : "90px")
-      : "30px";
+  const marginTopValue = window.matchMedia('(min-width: 768px)').matches
+    ? (
+      (filter.category || filter.gender)
+        ? "20px"
+        : (filter.searchQuery
+          ? "100px"
+          : (currentPage === 1 ? "20px" : "100px")
+        )
+    )
+    : (
+      (filter.category || filter.gender)
+        ? "20px"
+        : (filter.searchQuery
+          ? "50px"
+          : ((location.pathname === '/' && !filter.category && !filter.gender && !filter.searchQuery)
+            ? (currentPage === 1 ? "20px" : "90px")
+            : "30px"
+          )
+        )
+    );
+
+
 
   const sortProducts = (products, sortMethod) => {
     let sortedProducts = [...products];

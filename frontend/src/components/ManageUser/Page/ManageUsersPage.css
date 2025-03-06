@@ -32,7 +32,6 @@
     margin-top: 8rem;
     margin-bottom: 2rem;
     font-size: 2rem;
-    margin-right: 4rem;
 }
 
 .contentManageUsers {
@@ -66,4 +65,26 @@
 
 .table-body {
     background-color: #ffffff5e;
+}
+
+@media (max-width: 512px) {
+    .contentManageUsers {
+        margin-right: 0;
+        margin-left: 0;
+        justify-items: center;
+    }
+
+    .users-table th,
+    .users-table td {
+        padding: 2px;
+    }
+
+    .table-body {
+        font-size: 0.8em;
+    }
+
+    .table-container {
+        display: flex;
+        justify-content: center;
+    }
 }

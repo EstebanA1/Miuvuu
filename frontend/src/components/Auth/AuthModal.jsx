@@ -221,7 +221,7 @@ const AuthModal = ({ open, onClose, headerVisible }) => {
                             {showPassword ? <EyeOff /> : <Eye />}
                         </button>
                         <a href="#">¿Olvidaste tu contraseña?</a>
-                        <button type="submit">Iniciar Sesión</button>
+                        <button className="loginBT" type="submit">Iniciar Sesión</button>
                     </form>
                 </div>
 

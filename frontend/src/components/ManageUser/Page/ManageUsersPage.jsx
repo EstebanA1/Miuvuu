@@ -54,7 +54,7 @@ const ManageUsersPage = () => {
                     </Button>
                 </div>
 
-                <div className="table">
+                <div className="table-container">
                     <table className="users-table">
                         <thead>
                             <tr>
