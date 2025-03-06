@@ -285,9 +285,10 @@
     }
 
     .container input {
-        width: 11rem;
+        width: 10rem;
         margin-left: -2rem;
-        margin-right: -3rem;
+        margin-right: -2rem;
+        font-size: 0.5em;
     }
 
     .google-button {
@@ -301,17 +302,19 @@
 
     .showPS,
     .showPS2 {
-        margin-top: -2.8rem;
-    }
-    .showPS {
-        margin-right: -7.5rem;
-    }
-    .showPS2 {
-        margin-right: -7.6rem;
+        margin-top: -2.5rem;
     }
 
-    .showPS3 { 
-        margin-top: 13.2rem;
+    .showPS {
+        margin-right: -7.0rem;
+    }
+
+    .showPS2 {
+        margin-right: -6.9rem;
+    }
+
+    .showPS3 {
+        margin-top: 12.8rem;
         margin-right: -2rem;
     }
 
@@ -324,6 +327,10 @@
         width: 8rem;
         margin-left: 1.5rem;
         font-size: 10px;
+    }
+
+    .container bottom {
+        padding: 10px 25px;
     }
 }
 
