@@ -162,7 +162,7 @@
 }
 
 .sort-control .MuiSvgIcon-root {
-  margin-right: 8px;
+  margin-left: 16px;
 }
 
 @media (max-width: 478px) {
@@ -199,15 +199,15 @@
     padding: 5px 10px;
     justify-content: space-between;
   }
-  
+
   .logo-text {
     font-size: 1.2rem;
   }
-  
+
   .search-container {
     width: 110px;
   }
-  
+
   .search-container input {
     width: 80%;
   }
@@ -215,7 +215,7 @@
   .header-icons {
     gap: 10px;
   }
-  
+
   .header-selecters.logged-in,
   .header-selecters.logged-out,
   .header-selecters.admin {
@@ -229,19 +229,19 @@
     padding: 5px 15px;
     justify-content: center;
   }
-  
+
   .logo-text {
     font-size: 1.3rem;
   }
-  
+
   .search-container {
     width: 150px;
   }
-  
+
   .header-icons {
     gap: 12px;
   }
-  
+
   .header-selecters.logged-in,
   .header-selecters.logged-out,
   .header-selecters.admin {
@@ -255,27 +255,27 @@
     justify-content: center;
     margin-left: -60px;
   }
-  
+
   .logo-text {
     font-size: 1.5rem;
   }
-  
+
   .search-container {
     width: 200px;
   }
-  
+
   .header-icons {
     gap: 15px;
   }
-  
+
   .header-selecters.logged-in {
     margin-left: 412px;
   }
-  
+
   .header-selecters.logged-out {
     margin-left: 190px;
   }
-  
+
   .header-selecters.admin {
     margin-left: 300px;
   }

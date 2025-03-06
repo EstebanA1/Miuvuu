@@ -195,6 +195,7 @@ const MyProfile = () => {
                             type={showPasswords.current ? "text" : "password"}
                             label="Contraseña Actual"
                             name="current"
+                            className="password-field"
                             value={passwords.current}
                             onChange={handlePasswordChange}
                             InputProps={{
@@ -216,6 +217,7 @@ const MyProfile = () => {
                             type={showPasswords.new ? "text" : "password"}
                             label="Nueva Contraseña"
                             name="new"
+                            className="password-field"
                             value={passwords.new}
                             onChange={handlePasswordChange}
                             InputProps={{
@@ -237,6 +239,7 @@ const MyProfile = () => {
                             type={showPasswords.confirm ? "text" : "password"}
                             label="Confirmar Nueva Contraseña"
                             name="confirm"
+                            className="password-field"
                             value={passwords.confirm}
                             onChange={handlePasswordChange}
                             InputProps={{
