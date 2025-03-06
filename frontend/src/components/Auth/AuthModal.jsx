@@ -17,6 +17,7 @@ const AuthModal = ({ open, onClose, headerVisible }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const modalRef = useRef(null);
+    const apiUrl = process.env.API_URL || "http://127.0.0.1:8000";
 
     const handleClickOutside = (e) => {
         if (modalRef.current && !modalRef.current.contains(e.target)) {
@@ -116,7 +117,7 @@ const AuthModal = ({ open, onClose, headerVisible }) => {
     if (!open) return null;
 
     const containerStyle = {
-        marginTop: headerVisible ? '-158px' : '0px' 
+        marginTop: headerVisible ? '-158px' : '0px'
     };
 
     return (
@@ -187,7 +188,7 @@ const AuthModal = ({ open, onClose, headerVisible }) => {
                                 className="google-button"
                                 onClick={() => {
                                     console.log('Botón de Google clickeado');
-                                    window.location.href = "http://127.0.0.1:8000/api/auth/google/login";
+                                    window.location.href = `https://miuvuu-production.up.railway.app/api/auth/google/callback`;
                                 }}
                             >
                                 <img src="/google.svg" alt="Google Icon" className="google-icon" />
