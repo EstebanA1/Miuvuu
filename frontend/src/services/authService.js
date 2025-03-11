@@ -279,12 +279,17 @@ export const userService = {
                 metodo_pago: userData.metodo_pago || []
             };
             
-            if (userData.contraseña) {
-                processedData.contraseña = userData.contraseña;
-            }
-            
             if (userData.rol !== undefined) {
                 processedData.rol = userData.rol;
+            }
+            
+            if (userData.nueva_contraseña && userData.confirmar_nueva_contraseña) {
+                processedData.nueva_contraseña = userData.nueva_contraseña;
+                processedData.confirmar_nueva_contraseña = userData.confirmar_nueva_contraseña;
+                
+                if (userData.current_password !== undefined) {
+                    processedData.current_password = userData.current_password;
+                }
             }
             
             const response = await axios.put(`${USERS_API}${id}`, processedData);

@@ -118,11 +118,11 @@ async def update_usuario_profile(db: AsyncSession, usuario_id: int, update_data:
     if update_data.nueva_contraseña or update_data.confirmar_nueva_contraseña:
         if not (update_data.nueva_contraseña and update_data.confirmar_nueva_contraseña):
             raise HTTPException(status_code=400, detail="Para cambiar la contraseña, se deben enviar 'nueva_contraseña' y 'confirmar_nueva_contraseña'")
+        
         if update_data.nueva_contraseña != update_data.confirmar_nueva_contraseña:
             raise HTTPException(status_code=400, detail="Las nuevas contraseñas no coinciden")
-        if not update_data.current_password:
-            raise HTTPException(status_code=400, detail="Debe enviar la contraseña actual para cambiar la contraseña")
-        if not verify_password(update_data.current_password, usuario.contraseña):
+        
+        if update_data.current_password is not None and not verify_password(update_data.current_password, usuario.contraseña):
             raise HTTPException(status_code=400, detail="La contraseña actual no es correcta")
         
         usuario.contraseña = pwd_context.hash(update_data.nueva_contraseña)

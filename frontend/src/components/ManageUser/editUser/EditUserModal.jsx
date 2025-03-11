@@ -12,15 +12,30 @@ const EditUserModal = ({ user, onClose, onUpdate }) => {
         nombre: user.nombre,
         correo: user.correo,
         rol: user.rol,
-        metodo_pago: user.metodo_pago || [],
-        contraseña: ""
+        metodo_pago: user.metodo_pago || []
     });
-    const [showPassword, setShowPassword] = useState(false);
+    
+    const [passwords, setPasswords] = useState({
+        nueva: '',
+        confirmar: ''
+    });
+    
+    const [showPasswords, setShowPasswords] = useState({
+        nueva: false,
+        confirmar: false
+    });
+    
+    const togglePasswordVisibility = (field) => {
+        setShowPasswords(prev => ({
+            ...prev,
+            [field]: !prev[field]
+        }));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!userData.nombre || !userData.correo || !userData.rol || !userData.contraseña) {
+        if (!userData.nombre || !userData.correo || !userData.rol) {
             alert("Por favor, complete todos los campos requeridos.");
             return;
         }
@@ -29,9 +44,24 @@ const EditUserModal = ({ user, onClose, onUpdate }) => {
             nombre: userData.nombre,
             correo: userData.correo,
             rol: userData.rol,
-            metodo_pago: userData.metodo_pago,
-            contraseña: userData.contraseña
+            metodo_pago: userData.metodo_pago
         };
+
+        if (passwords.nueva || passwords.confirmar) {
+            if (!passwords.nueva || !passwords.confirmar) {
+                alert("Debe completar ambos campos de contraseña");
+                return;
+            }
+            
+            if (passwords.nueva !== passwords.confirmar) {
+                alert("Las contraseñas no coinciden");
+                return;
+            }
+            
+            dataToUpdate.current_password = null;
+            dataToUpdate.nueva_contraseña = passwords.nueva;
+            dataToUpdate.confirmar_nueva_contraseña = passwords.confirmar;
+        }
 
         try {
             await userService.updateUser(user.id, dataToUpdate);
@@ -99,21 +129,44 @@ const EditUserModal = ({ user, onClose, onUpdate }) => {
 
                         <div>
                             <TextField
-                                label="Contraseña Actual"
-                                type={showPassword ? "text" : "password"}
-                                value={userData.contraseña}
-                                onChange={(e) => setUserData({ ...userData, contraseña: e.target.value })}
+                                label="Nueva Contraseña"
+                                type={showPasswords.nueva ? "text" : "password"}
+                                value={passwords.nueva}
+                                onChange={(e) => setPasswords({ ...passwords, nueva: e.target.value })}
                                 fullWidth
-                                aria-label="Contraseña"
+                                aria-label="Nueva contraseña"
                                 variant="outlined"
                                 margin="normal"
                                 sx={{ marginTop: '5px', marginBottom: '5px' }}
-                                required
+                                helperText="Deja en blanco para mantener la contraseña actual"
                                 InputProps={{
                                     endAdornment: (
                                         <InputAdornment position="end">
-                                            <IconButton onClick={() => setShowPassword(prev => !prev)}>
-                                                {showPassword ? <EyeOff /> : <Eye />}
+                                            <IconButton onClick={() => togglePasswordVisibility('nueva')}>
+                                                {showPasswords.nueva ? <EyeOff /> : <Eye />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />
+                        </div>
+                        
+                        <div>
+                            <TextField
+                                label="Confirmar Nueva Contraseña"
+                                type={showPasswords.confirmar ? "text" : "password"}
+                                value={passwords.confirmar}
+                                onChange={(e) => setPasswords({ ...passwords, confirmar: e.target.value })}
+                                fullWidth
+                                aria-label="Confirmar nueva contraseña"
+                                variant="outlined"
+                                margin="normal"
+                                sx={{ marginTop: '5px', marginBottom: '5px' }}
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton onClick={() => togglePasswordVisibility('confirmar')}>
+                                                {showPasswords.confirmar ? <EyeOff /> : <Eye />}
                                             </IconButton>
                                         </InputAdornment>
                                     ),
