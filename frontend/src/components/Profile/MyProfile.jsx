@@ -91,10 +91,16 @@ const MyProfile = () => {
             };
 
             if (passwords.current || passwords.new || passwords.confirm) {
+                if (!passwords.current || !passwords.new || !passwords.confirm) {
+                    setError('Todos los campos de contraseña son requeridos');
+                    return;
+                }
+                
                 if (passwords.new !== passwords.confirm) {
                     setError('Las contraseñas nuevas no coinciden');
                     return;
                 }
+                
                 payload.current_password = passwords.current;
                 payload.nueva_contraseña = passwords.new;
                 payload.confirmar_nueva_contraseña = passwords.confirm;
@@ -112,7 +118,8 @@ const MyProfile = () => {
             setSuccess('Perfil actualizado exitosamente');
             setTimeout(() => setSuccess(''), 3000);
         } catch (error) {
-            setError(error.message || 'Error al actualizar el perfil');
+            console.error('Error al actualizar perfil:', error);
+            setError(error.response?.data?.detail || error.message || 'Contraseña incorrecta, intente nuevamente');
         }
     };
 
